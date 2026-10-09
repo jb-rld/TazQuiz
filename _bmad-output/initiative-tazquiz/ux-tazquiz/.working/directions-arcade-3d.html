@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TazQuiz Directions Arcade</title>
+<!-- Exception réseau autorisée : polices pixel uniquement. Repli monospace si hors ligne. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   PAGE (planche de comparaison, hors directions)
+   Police charte : Aileron (non disponible localement) -> repli
+   -apple-system / Segoe UI / Helvetica Neue / Arial.
+   ========================================================= */
+:root{
+  --sans: "Aileron", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --pixel: "Press Start 2P", "Courier New", monospace;
+  --pixel2: "Silkscreen", "Courier New", monospace;
+  --crt: "VT323", "Courier New", monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E9E5E0;color:#1D2433;font-family:var(--sans);padding:48px 32px 96px}
+.page{width:1320px;margin:0 auto}
+.intro{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px}
+.intro h1{font-size:44px;font-weight:900;letter-spacing:-.03em;line-height:1.05}
+.intro h1 small{display:block;font-size:15px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#80809B;margin-bottom:10px}
+.intro .meta{max-width:560px;font-size:14px;line-height:1.55;color:#4A5268}
+.intro .meta b{color:#1D2433}
+.intro img{height:30px;display:block;margin-bottom:14px}
+
+.dir{background:#fff;border-radius:28px;padding:44px 40px 40px;margin-bottom:56px;box-shadow:0 2px 0 rgba(0,0,0,.04),0 20px 50px -30px rgba(29,36,51,.35)}
+.dir-head{display:grid;grid-template-columns:auto 1fr 420px;gap:28px;align-items:start;margin-bottom:34px}
+.dir-num{width:78px;height:78px;border-radius:22px;display:grid;place-items:center;font-size:40px;font-weight:900;color:#fff}
+.dir-head h2{font-size:40px;font-weight:900;letter-spacing:-.03em;line-height:1}
+.dir-head h2 em{font-style:normal;display:block;font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#80809B;margin-bottom:8px}
+.dir-head p{margin-top:14px;font-size:16px;line-height:1.55;color:#3A4257;max-width:640px}
+.traits{list-style:none;display:grid;grid-template-columns:110px 1fr;gap:8px 14px;font-size:13px;line-height:1.4;background:#F5F2EE;border-radius:16px;padding:18px 20px}
+.traits dt{font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:11px;color:#80809B;padding-top:2px}
+.traits dd{color:#283044}
+
+.row{display:flex;gap:40px;align-items:flex-start}
+.row + .row{margin-top:40px}
+figure{margin:0}
+figcaption{margin-top:12px;font-size:13px;font-weight:700;color:#5A6278;letter-spacing:.02em}
+figcaption span{font-weight:500;color:#80809B}
+
+/* Cadre navigateur 16:9 */
+.browser{width:960px;border-radius:14px;overflow:hidden;background:#2B2F3A;box-shadow:0 30px 60px -30px rgba(0,0,0,.55)}
+.browser .bar{height:34px;display:flex;align-items:center;gap:7px;padding:0 14px;background:#30343F}
+.browser .bar i{width:11px;height:11px;border-radius:50%;background:#FF5F57}
+.browser .bar i:nth-child(2){background:#FEBC2E}.browser .bar i:nth-child(3){background:#28C840}
+.browser .bar span{margin-left:16px;flex:1;height:20px;border-radius:6px;background:#22252E;color:#9CA3B5;font-size:11px;display:flex;align-items:center;padding:0 10px;font-family:var(--sans)}
+.screen{width:960px;height:540px;position:relative;overflow:hidden}
+
+/* Cadre téléphone */
+.phone{width:300px;height:620px;border-radius:46px;background:#14161C;padding:10px;box-shadow:0 30px 60px -28px rgba(0,0,0,.6),inset 0 0 0 2px #2C2F38;position:relative}
+.phone::before{content:"";position:absolute;top:20px;left:50%;transform:translateX(-50%);width:86px;height:24px;border-radius:14px;background:#000;z-index:5}
+.pscreen{width:280px;height:600px;border-radius:36px;overflow:hidden;position:relative}
+.sbar{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font:600 13px var(--sans)}
+
+/* Mascotte (commune) */
+.pico{display:block;overflow:visible}
+.bob{animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-8px) rotate(1.5deg)}}
+.mascot-note{font-size:12px;color:#80809B;margin-top:6px;font-style:italic}
+
+.side{flex:1;display:flex;flex-direction:column;gap:18px}
+.palette{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sw{display:flex;align-items:center;gap:10px;font-size:12px;color:#3A4257}
+.sw i{width:34px;height:34px;border-radius:10px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.sw b{display:block;font-size:12px;color:#1D2433}
+.side h4{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#80809B;margin-bottom:8px}
+.side p{font-size:13px;line-height:1.5;color:#3A4257}
+
+.logo-plate{background:#fff;display:inline-flex;align-items:center;justify-content:center}
+.logo-plate img{display:block;height:100%;width:auto}
+
+/* =========================================================
+   DIRECTION 1 : BORNE D'ARCADE
+   Fond        #07070D (noir CRT), #12121F (panneaux)
+   Texte       #F4F4F8
+   Réponses    A #FF4D6D (rouge néon, dérivé #F55364)
+               B #2EA8FF (bleu néon, dérivé #008DD5)
+               C #FFC93C (jaune borne)
+               D #19D9A0 (vert néon, dérivé #00B596)
+   Accents     #2EE6FF (cyan HUD), #B65A98 (violet charte, ombres)
+   Typo        Press Start 2P (HUD, chiffres), VT323 (énoncés lisibles)
+   Mouvement   clignotements en steps(), scintillement CRT, mascotte qui flotte
+   ========================================================= */
+.d1 .screen,.d1 .pscreen{background:radial-gradient(ellipse at 50% 40%,#16162A 0%,#07070D 70%);color:#F4F4F8;font-family:var(--pixel)}
+.d1 .screen::after,.d1 .pscreen::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:20;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.32) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%);
+  animation:flicker 4s steps(2) infinite}
+@keyframes flicker{0%,96%{opacity:1}97%{opacity:.85}100%{opacity:1}}
+.d1 .stars{position:absolute;inset:0;background-image:radial-gradient(#2A2A48 1.2px,transparent 1.3px);background-size:24px 24px;opacity:.6}
+.d1 .hud{position:relative;display:flex;justify-content:space-between;align-items:center;padding:16px 24px 0;font-size:11px;z-index:2}
+.d1 .hud .lab{color:#FF4D6D;display:block;margin-bottom:6px}
+.d1 .hud .val{color:#fff}
+.d1 .hud .right{text-align:right}
+.d1 .logo-plate{height:26px;padding:5px 10px;box-shadow:-3px 0 0 #fff,3px 0 0 #fff,0 -3px 0 #fff,0 3px 0 #fff}
+.d1 .q{position:relative;z-index:2;text-align:center;font-family:var(--crt);font-size:50px;line-height:1;padding:22px 40px 0;text-shadow:0 0 10px rgba(255,255,255,.35)}
+.d1 .q small{display:block;font-family:var(--pixel);font-size:10px;color:#2EE6FF;letter-spacing:.2em;margin-bottom:10px;text-shadow:none}
+.d1 .mid{position:relative;z-index:2;display:grid;grid-template-columns:420px 1fr 200px;align-items:center;height:178px;padding:0 24px}
+.d1 .host{display:flex;align-items:center;gap:6px}
+.d1 .host .pico{width:128px;height:141px;filter:drop-shadow(0 0 18px rgba(255,77,109,.45))}
+.d1 .bubble{background:#fff;color:#07070D;font-size:9px;line-height:1.8;padding:12px 14px;position:relative;max-width:270px;
+  box-shadow:-4px 0 0 #fff,4px 0 0 #fff,0 -4px 0 #fff,0 4px 0 #fff,0 8px 0 -0px #FF4D6D,-4px 4px 0 #FF4D6D,4px 4px 0 #FF4D6D}
+.d1 .bubble::before{content:"";position:absolute;left:-12px;top:22px;width:4px;height:4px;background:#fff;box-shadow:4px 0 #fff,4px -4px #fff,4px 4px #fff,-4px 0 #fff}
+.d1 .bubble b{color:#FF4D6D;font-weight:400;display:block;margin-bottom:6px}
+.d1 .timer{text-align:center}
+.d1 .timer .lab{font-size:10px;color:#FFC93C;letter-spacing:.2em}
+.d1 .timer .num{font-size:78px;color:#FFC93C;text-shadow:6px 6px 0 #9A4A00;margin-top:12px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:.25}}
+.d1 .count{text-align:right}
+.d1 .count .lab{font-size:9px;color:#2EE6FF;letter-spacing:.15em}
+.d1 .count .num{font-size:26px;margin:12px 0;color:#fff}
+.d1 .pbar{height:14px;border:3px solid #2EE6FF;padding:2px}
+.d1 .pbar i{display:block;height:100%;width:67%;background:repeating-linear-gradient(90deg,#2EE6FF 0 8px,transparent 8px 11px)}
+.d1 .answers{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 24px}
+.d1 .ans{--c:#FF4D6D;display:flex;align-items:center;gap:14px;height:68px;padding:0 16px;background:color-mix(in srgb,var(--c) 14%,#07070D);
+  border:3px solid var(--c);font-family:var(--crt);font-size:34px;color:#fff;
+  clip-path:polygon(0 6px,6px 6px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 6px) calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 6px),0 calc(100% - 6px))}
+.d1 .ans .L{width:38px;height:38px;background:var(--c);color:#07070D;font-family:var(--pixel);font-size:16px;display:grid;place-items:center}
+.d1 .ans svg{width:26px;height:26px;fill:var(--c);shape-rendering:crispEdges;flex:none}
+.d1 .a{--c:#FF4D6D}.d1 .b{--c:#2EA8FF}.d1 .c{--c:#FFC93C}.d1 .d{--c:#19D9A0}
+.d1 .press{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:9px;color:#80809B;z-index:2;letter-spacing:.2em}
+.d1 .press b{color:#FFC93C;font-weight:400;animation:blink 1.2s steps(1) infinite}
+
+/* D1 téléphone */
+.d1 .pscreen{font-size:10px}
+.d1 .sbar{color:#F4F4F8;font-family:var(--sans)}
+.d1 .ph{position:relative;z-index:2;padding:6px 18px}
+.d1 .ph .who{display:flex;justify-content:space-between;color:#2EE6FF;font-size:9px}
+.d1 .ph .ok{margin-top:24px;text-align:center;color:#19D9A0;font-size:13px;line-height:1.6;animation:blink 1s steps(1) 3}
+.d1 .ph .big{text-align:center;font-size:40px;color:#FFC93C;text-shadow:4px 4px 0 #9A4A00;margin-top:14px}
+.d1 .ph .big small{display:block;font-size:10px;color:#F4F4F8;text-shadow:none;margin-top:12px;letter-spacing:.2em}
+.d1 .ph .lines{margin:20px 0 0;border-top:3px dashed #2A2A48;padding-top:14px;display:grid;gap:10px;font-size:9px}
+.d1 .ph .lines div{display:flex;justify-content:space-between}
+.d1 .ph .lines span:last-child{color:#FFC93C}
+.d1 .boost{display:block;margin:16px auto 0;width:max-content;background:#B65A98;color:#fff;font-size:10px;padding:8px 12px;box-shadow:-3px 0 #B65A98,3px 0 #B65A98,0 -3px #B65A98,0 3px #B65A98;animation:blink .8s steps(1) infinite}
+.d1 .rank{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.d1 .rank div{border:3px solid #2EE6FF;padding:10px;text-align:center}
+.d1 .rank div span{display:block;font-size:8px;color:#2EE6FF;margin-bottom:8px}
+.d1 .rank div b{font-weight:400;font-size:18px}
+.d1 .rival{margin-top:12px;border:3px solid #FF4D6D;padding:12px 10px;display:flex;align-items:center;gap:10px}
+.d1 .rival svg{width:22px;height:22px;fill:#FF4D6D;shape-rendering:crispEdges;flex:none;animation:blink .9s steps(1) infinite}
+.d1 .rival span{display:block;font-size:8px;color:#FF4D6D;margin-bottom:7px}
+.d1 .rival b{font-weight:400;font-size:10px;line-height:1.5}
+.d1 .rival em{font-style:normal;color:#FFC93C}
+
+/* D1 répartition */
+.d1 .bars{position:relative;z-index:2;display:flex;justify-content:flex-start;gap:30px;align-items:flex-end;height:290px;padding:0 40px 0 60px;margin-top:20px}
+.d1 .col{--c:#FF4D6D;width:112px;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative}
+.d1 .col .n{font-size:20px;color:var(--c)}
+.d1 .col .bar{width:84px;background:repeating-linear-gradient(0deg,var(--c) 0 10px,transparent 10px 13px);opacity:.5}
+.d1 .col.ok .bar{opacity:1;filter:drop-shadow(0 0 12px var(--c))}
+.d1 .col .foot{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--c)}
+.d1 .col .foot svg{width:18px;height:18px;fill:var(--c);shape-rendering:crispEdges}
+.d1 .col .lbl{font-family:var(--crt);font-size:22px;color:#F4F4F8;text-align:center;height:22px;white-space:nowrap}
+.d1 .col .tag{position:absolute;top:-40px;font-size:9px;color:#07070D;background:#19D9A0;padding:6px 8px;animation:blink .7s steps(1) infinite;white-space:nowrap}
+.d1 .tease{position:absolute;right:28px;bottom:66px;z-index:3;display:flex;flex-direction:column;align-items:center;width:250px}
+.d1 .tease .bubble{margin-bottom:18px}
+.d1 .tease .bubble::before{left:auto;right:auto;top:auto;bottom:-12px;left:40px;box-shadow:0 4px #fff,4px 4px #fff,-4px 4px #fff,0 -4px #fff}
+
+/* =========================================================
+   DIRECTION 2 : ARCADE MODERNE
+   Fond        aplats #FFD23F (jaune), #00B596 (vert charte), #F55364 (rouge charte),
+               #2F80ED (bleu), #273C59 (bleu marine charte)
+   Cartes      #FFFFFF, #111318 (noir doux)
+   Texte       #111318 / #FFFFFF
+   Réponses    A #FF5A5F (corail)  B #2F80ED (bleu)  C #FFC531 (jaune)  D #00B596 (vert)
+   Typo        sans système très grasse (900), chiffres géants ; pixel quasi absent
+               (un seul clin d'oeil : le coeur pixel du « Record »)
+   Mouvement   rebonds élastiques (cubic-bezier .34,1.56,.64,1), pop des cartes, anneau qui se vide
+   ========================================================= */
+.d2 .screen,.d2 .pscreen{background:#FFD23F;font-family:var(--sans);color:#111318}
+.d2 .blk{position:absolute;z-index:0}
+.d2 .k1{width:420px;height:420px;border-radius:50%;background:#00B596;left:-140px;top:180px}
+.d2 .k2{width:340px;height:340px;border-radius:0 0 0 340px;background:#F55364;right:0;top:0}
+.d2 .k3{width:260px;height:130px;border-radius:130px 130px 0 0;background:#273C59;right:120px;bottom:0}
+.d2 .k4{width:120px;height:120px;border-radius:28px;background:#2F80ED;left:330px;top:-40px;transform:rotate(18deg)}
+.d2 .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1fr 210px;grid-template-rows:40px 132px 1fr;gap:16px;padding:22px 24px;height:100%}
+.d2 .top{grid-column:1/-1;display:flex;gap:10px;align-items:center}
+.d2 .pill{height:40px;border-radius:20px;padding:0 18px;display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:15px;background:#fff;box-shadow:0 6px 0 rgba(17,19,24,.12)}
+.d2 .pill.dark{background:#111318;color:#fff}
+.d2 .pill.logo{padding:0 18px}
+.d2 .pill.logo img{height:17px}
+.d2 .pill svg{width:14px;height:12px;fill:#F55364;shape-rendering:crispEdges}
+.d2 .sp{flex:1}
+.d2 .qcard{background:#fff;border-radius:30px;padding:24px 30px;display:flex;flex-direction:column;justify-content:center;box-shadow:0 10px 0 rgba(17,19,24,.12)}
+.d2 .qcard small{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#F55364}
+.d2 .qcard h3{font-size:42px;font-weight:900;letter-spacing:-.03em;line-height:1.05;margin-top:8px}
+.d2 .ring{width:132px;height:132px;border-radius:50%;justify-self:center;background:conic-gradient(#FFD23F 0 60%,#2B2E36 60% 100%);display:grid;place-items:center;box-shadow:0 10px 0 rgba(17,19,24,.18);animation:pulse 1s cubic-bezier(.34,1.56,.64,1) infinite}
+.d2 .ring b{width:104px;height:104px;border-radius:50%;background:#111318;color:#fff;display:grid;place-items:center;font-size:58px;font-weight:900;letter-spacing:-.04em}
+@keyframes pulse{0%,100%{transform:scale(1)}15%{transform:scale(1.07)}}
+.d2 .answers{background:#111318;border-radius:30px;padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;box-shadow:0 10px 0 rgba(17,19,24,.18)}
+.d2 .ans{--c:#FF5A5F;background:var(--c);border-radius:20px;display:flex;align-items:center;gap:14px;padding:0 18px;font-size:23px;font-weight:800;color:#111318;letter-spacing:-.01em;line-height:1.1}
+.d2 .ans .L{width:44px;height:44px;border-radius:14px;background:#fff;display:grid;place-items:center;flex:none;position:relative}
+.d2 .ans .L svg{width:24px;height:24px;fill:var(--c)}
+.d2 .ans .L i{position:absolute;right:-6px;bottom:-6px;width:22px;height:22px;border-radius:8px;background:#111318;color:#fff;font-style:normal;font-size:13px;font-weight:900;display:grid;place-items:center}
+.d2 .a{--c:#FF5A5F}.d2 .b{--c:#2F80ED}.d2 .b{color:#fff}.d2 .c{--c:#FFC531}.d2 .d{--c:#00B596}
+.d2 .host{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.d2 .bubble{background:#fff;border-radius:22px;padding:12px 14px;font-size:14px;font-weight:800;line-height:1.25;position:relative;box-shadow:0 8px 0 rgba(17,19,24,.12);margin-bottom:10px}
+.d2 .bubble::after{content:"";position:absolute;bottom:-12px;left:50%;margin-left:-12px;border:12px solid transparent;border-top-color:#fff;border-bottom:0}
+.d2 .bubble em{font-style:normal;display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#F55364;margin-bottom:4px}
+.d2 .host .pico{width:118px;height:130px;animation:hop 1.6s cubic-bezier(.34,1.56,.64,1) infinite}
+@keyframes hop{0%,100%{transform:translateY(0) scale(1,1)}20%{transform:translateY(0) scale(1.06,.94)}45%{transform:translateY(-14px) scale(.96,1.04)}70%{transform:translateY(0) scale(1.03,.97)}}
+.d2 .cnt{display:flex;align-items:center;gap:10px}
+.d2 .cnt .dots{display:flex}
+.d2 .cnt .dots i{width:22px;height:22px;border-radius:50%;border:3px solid #fff;margin-left:-8px}
+.d2 .cnt b{font-size:22px;font-weight:900}
+
+/* D2 téléphone */
+.d2 .pscreen .k1{width:260px;height:260px;left:-90px;top:330px}
+.d2 .pscreen .k2{width:180px;height:180px;border-radius:0 0 0 180px}
+.d2 .sbar{position:relative;z-index:3}
+.d2 .ph{position:relative;z-index:2;padding:4px 16px;display:flex;flex-direction:column;gap:10px}
+.d2 .ph .who{font-size:13px;font-weight:800;display:flex;justify-content:space-between;align-items:center}
+.d2 .ph .who span{background:#111318;color:#fff;border-radius:12px;padding:5px 10px;font-size:12px}
+.d2 .card{background:#fff;border-radius:26px;padding:16px 18px;box-shadow:0 7px 0 rgba(17,19,24,.12)}
+.d2 .card.dark{background:#111318;color:#fff}
+.d2 .card.coral{background:#F55364;color:#fff}
+.d2 .gain small{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#00B596}
+.d2 .gain b{display:block;font-size:62px;font-weight:900;letter-spacing:-.05em;line-height:1;margin-top:6px;animation:popin 1.2s cubic-bezier(.34,1.56,.64,1) infinite alternate}
+@keyframes popin{0%{transform:scale(.96)}100%{transform:scale(1.03)}}
+.d2 .chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.d2 .chips i{font-style:normal;font-size:11px;font-weight:800;padding:5px 9px;border-radius:10px;background:#F1EEE9}
+.d2 .chips i.boost{background:#111318;color:#FFD23F}
+.d2 .duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.d2 .duo .card{padding:14px 16px}
+.d2 .duo small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.7}
+.d2 .duo b{font-size:34px;font-weight:900;letter-spacing:-.04em}
+.d2 .duo b sup{font-size:16px}
+.d2 .riv{display:flex;align-items:center;gap:12px}
+.d2 .riv .arr{width:40px;height:40px;border-radius:14px;background:#fff;color:#F55364;display:grid;place-items:center;font-size:22px;font-weight:900;flex:none}
+.d2 .riv small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;opacity:.85}
+.d2 .riv b{display:block;font-size:17px;font-weight:900;margin-top:2px}
+.d2 .riv span{font-size:13px;font-weight:700}
+.d2 .peek{position:absolute;right:-6px;bottom:-22px;z-index:3;width:120px;height:132px}
+.d2 .peek-bub{position:absolute;right:104px;bottom:58px;z-index:3;background:#fff;border-radius:16px 16px 4px 16px;padding:9px 12px;font-size:12px;font-weight:800;box-shadow:0 5px 0 rgba(17,19,24,.12)}
+
+/* D2 répartition */
+.d2 .rwrap{position:relative;z-index:2;padding:22px 24px;height:100%;display:grid;grid-template-rows:40px 1fr;gap:16px}
+.d2 .rmain{display:grid;grid-template-columns:1fr 230px;gap:16px}
+.d2 .rcard{background:#fff;border-radius:30px;padding:22px 26px 18px;display:flex;flex-direction:column;box-shadow:0 10px 0 rgba(17,19,24,.12)}
+.d2 .rcard h3{font-size:26px;font-weight:900;letter-spacing:-.02em}
+.d2 .rcols{flex:1;display:flex;gap:18px;align-items:flex-end;margin-top:10px}
+.d2 .rc{--c:#FF5A5F;flex:1;display:flex;flex-direction:column;align-items:center;gap:8px}
+.d2 .rc .n{font-size:30px;font-weight:900;letter-spacing:-.03em}
+.d2 .rc .bar{width:100%;border-radius:20px 20px 10px 10px;background:var(--c);transform-origin:bottom;animation:grow 1.1s cubic-bezier(.34,1.56,.64,1) both;opacity:.4}
+.d2 .rc.ok .bar{opacity:1;box-shadow:0 0 0 5px #111318}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.d2 .rc .lab{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;text-align:left;line-height:1.1;min-height:36px}
+.d2 .rc .lab .L{width:30px;height:30px;border-radius:10px;background:var(--c);display:grid;place-items:center;flex:none}
+.d2 .rc .lab .L svg{width:16px;height:16px;fill:#fff}
+.d2 .rc .okb{background:#111318;color:#fff;font-size:11px;font-weight:800;padding:5px 10px;border-radius:10px;text-transform:uppercase;letter-spacing:.06em}
+.d2 .rhost{display:flex;flex-direction:column;justify-content:flex-end;align-items:center}
+.d2 .rhost .pico{width:170px;height:187px;animation:hop 1.6s cubic-bezier(.34,1.56,.64,1) infinite}
+
+/* =========================================================
+   DIRECTION 3 : HYBRIDE
+   Fond        #1B2B45 (bleu nuit, dérivé marine #273C59), halo #2A4370
+   Cartes      #FBF7F2 (crème, dérivé warm gray #DAD3CC), #FFFFFF
+   Texte       #1B2B45 sur crème, #FFFFFF sur nuit
+   Réponses    A #F55364 (rouge charte)  B #008DD5 (process blue)
+               C #F2B33D (ambre)          D #00B596 (vert charte)
+   Accents     #FFD45C (jaune « score »), #B65A98 (violet charte, boost)
+   Typo        sans (Aileron -> repli système) pour lire ; Silkscreen / Press Start 2P
+               pour tout ce qui se compte : chrono, scores, rangs, compteurs
+   Mouvement   cartes fluides, mais chiffres qui « tiquent » en steps(), étoiles pixel qui scintillent
+   ========================================================= */
+.d3 .screen{background:radial-gradient(ellipse at 22% 70%,#2A4370 0%,#1B2B45 55%,#14223A 100%);font-family:var(--sans);color:#fff}
+.d3 .pix{fill:#FFD45C;shape-rendering:crispEdges;position:absolute;animation:twinkle 1.6s steps(2) infinite}
+@keyframes twinkle{50%{opacity:.25}}
+.d3 .wrap{position:relative;z-index:2;display:grid;grid-template-columns:290px 1fr;height:100%}
+.d3 .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 18px 22px}
+.d3 .bubble{background:#fff;color:#1B2B45;border-radius:20px;padding:14px 16px 14px;font-size:16px;font-weight:700;line-height:1.3;position:relative;margin-bottom:16px;box-shadow:0 12px 30px -10px rgba(0,0,0,.5)}
+.d3 .bubble::after{content:"";position:absolute;bottom:-11px;left:46%;border:11px solid transparent;border-top-color:#fff;border-bottom:0}
+.d3 .tagname{display:inline-block;font-family:var(--pixel2);font-size:12px;background:#F55364;color:#fff;padding:3px 8px;border-radius:6px;margin-bottom:8px;letter-spacing:.04em}
+.d3 .stage .pico{width:170px;height:187px;position:relative;z-index:2}
+.d3 .podium{width:210px;height:44px;margin-top:-26px;border-radius:50%/40%;background:linear-gradient(#2E4A78,#203558);box-shadow:inset 0 3px 0 rgba(255,255,255,.12),0 14px 24px -8px rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px}
+.d3 .podium span{font-family:var(--pixel2);font-size:11px;color:#FFD45C;letter-spacing:.12em;animation:twinkle 1.6s steps(2) infinite}
+.d3 .main{padding:22px 24px 22px 0;display:flex;flex-direction:column;gap:14px}
+.d3 .top{display:flex;align-items:center;gap:10px}
+.d3 .chip{height:36px;border-radius:12px;padding:0 14px;display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);font-size:13px;font-weight:700}
+.d3 .chip .px{font-family:var(--pixel2);font-size:15px;color:#FFD45C}
+.d3 .logo-plate{height:36px;border-radius:12px;padding:9px 14px}
+.d3 .sp{flex:1}
+.d3 .qrow{display:grid;grid-template-columns:1fr 150px;gap:14px}
+.d3 .qcard{background:#FBF7F2;color:#1B2B45;border-radius:22px;padding:22px 26px;display:flex;flex-direction:column;justify-content:center}
+.d3 .qcard small{font-family:var(--pixel2);font-size:13px;color:#F55364;letter-spacing:.06em}
+.d3 .qcard h3{font-size:36px;font-weight:900;letter-spacing:-.025em;line-height:1.08;margin-top:6px}
+.d3 .timer{background:#FFD45C;color:#1B2B45;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative}
+.d3 .timer b{font-family:var(--pixel);font-size:50px;font-weight:400;line-height:1;animation:tick 1s steps(1) infinite}
+@keyframes tick{0%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.d3 .segs{display:flex;gap:3px}
+.d3 .segs i{width:9px;height:12px;background:#1B2B45}
+.d3 .segs i.off{background:rgba(27,43,69,.2)}
+.d3 .timer small{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+.d3 .answers{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1}
+.d3 .ans{--c:#F55364;background:#fff;border-radius:18px;display:flex;align-items:center;gap:14px;padding:0 16px 0 0;overflow:hidden;color:#1B2B45;font-size:22px;font-weight:800;letter-spacing:-.01em;box-shadow:inset 0 -5px 0 color-mix(in srgb,var(--c) 30%,#fff)}
+.d3 .ans .L{width:82px;align-self:stretch;background:var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;flex:none;color:#fff}
+.d3 .ans .L svg{width:26px;height:26px;fill:#fff}
+.d3 .ans .L span{font-family:var(--pixel2);font-size:16px;font-weight:700}
+.d3 .a{--c:#F55364}.d3 .b{--c:#008DD5}.d3 .c{--c:#F2B33D}.d3 .d{--c:#00B596}
+.d3 .meter{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:700}
+.d3 .meter .px{font-family:var(--pixel2);font-size:18px;color:#FFD45C}
+.d3 .meter .track{flex:1;height:14px;border-radius:7px;background:rgba(255,255,255,.12);overflow:hidden;padding:3px}
+.d3 .meter .track i{display:block;height:100%;width:67%;border-radius:4px;background:repeating-linear-gradient(90deg,#FFD45C 0 6px,transparent 6px 8px)}
+
+/* D3 téléphone */
+.d3 .pscreen{background:#FBF7F2;color:#1B2B45;font-family:var(--sans)}
+.d3 .phead{background:#1B2B45;color:#fff;padding:0 0 64px;position:relative;border-radius:0 0 30px 30px}
+.d3 .phead .sbar{color:#fff}
+.d3 .phead .who{padding:4px 20px 0;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700}
+.d3 .phead .who .px{font-family:var(--pixel2);font-size:12px;color:#FFD45C}
+.d3 .phead h4{text-align:center;margin-top:16px;font-size:15px;font-weight:800;color:#00B596;letter-spacing:.02em}
+.d3 .phead .gain{text-align:center;font-family:var(--pixel);font-size:38px;color:#FFD45C;margin-top:12px;text-shadow:3px 3px 0 #0E1828}
+.d3 .phead .gain small{display:block;font-family:var(--sans);font-size:12px;font-weight:700;color:rgba(255,255,255,.7);text-shadow:none;margin-top:10px}
+.d3 .pbody{padding:0 16px;margin-top:-44px;position:relative;display:flex;flex-direction:column;gap:10px}
+.d3 .pcard{background:#fff;border-radius:20px;padding:14px 16px;box-shadow:0 10px 24px -14px rgba(27,43,69,.45)}
+.d3 .pcard.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center}
+.d3 .pcard.row2 small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#80809B}
+.d3 .pcard.row2 b{display:block;font-family:var(--pixel2);font-size:26px;margin-top:4px;font-weight:700}
+.d3 .pcard.row2 div + div{border-left:2px dashed #E8E1D9}
+.d3 .streak{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700}
+.d3 .streak .hearts{display:flex;gap:4px}
+.d3 .streak .hearts svg{width:16px;height:14px;fill:#B65A98;shape-rendering:crispEdges}
+.d3 .streak .tag{margin-left:auto;font-family:var(--pixel2);font-size:12px;background:#B65A98;color:#fff;padding:4px 8px;border-radius:8px}
+.d3 .rv{background:#1B2B45;color:#fff;display:flex;align-items:center;gap:12px}
+.d3 .rv svg{width:28px;height:28px;fill:#FFD45C;shape-rendering:crispEdges;flex:none;animation:tick 1s steps(1) infinite}
+.d3 .rv small{display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.65)}
+.d3 .rv b{display:block;font-size:16px;font-weight:800;margin-top:2px}
+.d3 .rv .px{font-family:var(--pixel2);color:#FFD45C;font-size:18px;margin-left:auto;text-align:right;line-height:1}
+.d3 .rv .px small{font-family:var(--sans);font-size:10px;color:rgba(255,255,255,.6);margin-top:4px}
+.d3 .pmasc{display:flex;align-items:flex-end;gap:6px;margin-top:2px}
+.d3 .pmasc .pico{width:70px;height:77px;flex:none}
+.d3 .pmasc p{background:#fff;border-radius:16px 16px 16px 4px;padding:9px 12px;font-size:12px;font-weight:700;margin-bottom:22px;box-shadow:0 8px 20px -14px rgba(27,43,69,.5)}
+
+/* D3 répartition */
+.d3 .rlist{display:flex;flex-direction:column;gap:12px;background:#FBF7F2;border-radius:22px;padding:20px 22px;color:#1B2B45;flex:1}
+.d3 .rlist h3{font-size:22px;font-weight:900;letter-spacing:-.02em;display:flex;justify-content:space-between;align-items:baseline}
+.d3 .rlist h3 span{font-family:var(--pixel2);font-size:13px;color:#80809B;font-weight:400}
+.d3 .rl{--c:#F55364;display:grid;grid-template-columns:46px 1fr 60px;gap:12px;align-items:center}
+.d3 .rl .L{height:46px;border-radius:14px;background:var(--c);display:grid;place-items:center}
+.d3 .rl .L svg{width:22px;height:22px;fill:#fff}
+.d3 .rl .tr{height:46px;border-radius:14px;background:#EEE7DF;position:relative;overflow:hidden;display:flex;align-items:center}
+.d3 .rl .tr i{position:absolute;left:0;top:0;bottom:0;border-radius:14px;background:repeating-linear-gradient(90deg,var(--c) 0 10px,color-mix(in srgb,var(--c) 80%,#fff) 10px 12px);opacity:.45}
+.d3 .rl .tr span{position:relative;padding-left:16px;font-size:18px;font-weight:800}
+.d3 .rl .n{font-family:var(--pixel2);font-size:24px;font-weight:700;text-align:right}
+.d3 .rl.ok .tr{box-shadow:inset 0 0 0 3px var(--c)}
+.d3 .rl.ok .tr i{opacity:1}
+.d3 .rl.ok .tr span{color:#fff}
+.d3 .rl.ok .tr em{position:relative;margin-left:auto;margin-right:12px;font-style:normal;font-family:var(--pixel2);font-size:12px;background:#fff;color:#008DD5;padding:4px 8px;border-radius:8px}
+.d3 .rl.lol .tr{outline:3px dashed #F2B33D;outline-offset:-3px}
+</style>
+</head>
+<body>
+
+<!-- ===== Bibliothèque SVG : mascotte « Pépite » + formes des réponses ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="pBody" cx="36%" cy="28%" r="78%"><stop offset="0" stop-color="#FFC0C6"/><stop offset=".42" stop-color="#F55364"/><stop offset="1" stop-color="#9E1A30"/></radialGradient>
+    <radialGradient id="pLimb" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#FF97A2"/><stop offset="1" stop-color="#B02236"/></radialGradient>
+    <radialGradient id="pBelly" cx="45%" cy="30%" r="75%"><stop offset="0" stop-color="#FFF8F2"/><stop offset="1" stop-color="#F5BCAE"/></radialGradient>
+    <radialGradient id="pBall" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFF6C2"/><stop offset=".5" stop-color="#FFC93C"/><stop offset="1" stop-color="#C97C00"/></radialGradient>
+    <radialGradient id="pEye" cx="40%" cy="32%" r="72%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE0EC"/></radialGradient>
+    <radialGradient id="pPupil" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#3D5072"/><stop offset="1" stop-color="#0B1020"/></radialGradient>
+    <filter id="pBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
+    <filter id="pSoft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
+
+    <symbol id="pico-base" viewBox="0 0 200 220">
+      <ellipse cx="100" cy="209" rx="64" ry="9" fill="#000" opacity=".3" filter="url(#pBlur)"/>
+      <ellipse cx="67" cy="193" rx="25" ry="14" fill="url(#pLimb)"/>
+      <ellipse cx="133" cy="193" rx="25" ry="14" fill="url(#pLimb)"/>
+      <ellipse cx="60" cy="187" rx="9" ry="4" fill="#fff" opacity=".35" filter="url(#pSoft)"/>
+      <path d="M100 44 Q97 22 115 14" stroke="#C02E45" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <circle cx="117" cy="13" r="12" fill="url(#pBall)"/>
+      <ellipse cx="112" cy="8" rx="4.5" ry="2.8" fill="#fff" opacity=".85"/>
+      <ellipse cx="22" cy="130" rx="14" ry="23" transform="rotate(28 22 130)" fill="url(#pLimb)"/>
+      <ellipse cx="180" cy="112" rx="14" ry="23" transform="rotate(-38 180 112)" fill="url(#pLimb)"/>
+      <ellipse cx="100" cy="118" rx="81" ry="77" fill="url(#pBody)"/>
+      <ellipse cx="100" cy="152" rx="47" ry="33" fill="url(#pBelly)"/>
+      <path d="M36 158 Q100 208 164 158" stroke="#FFA3AE" stroke-width="3" fill="none" opacity=".55" filter="url(#pSoft)"/>
+      <ellipse cx="64" cy="66" rx="28" ry="14" transform="rotate(-32 64 66)" fill="#fff" opacity=".7" filter="url(#pSoft)"/>
+      <circle cx="47" cy="92" r="5" fill="#fff" opacity=".6"/>
+      <ellipse cx="50" cy="126" rx="13" ry="7" fill="#FF6F81" opacity=".8" filter="url(#pSoft)"/>
+      <ellipse cx="150" cy="126" rx="13" ry="7" fill="#FF6F81" opacity=".8" filter="url(#pSoft)"/>
+    </symbol>
+
+    <symbol id="pico-talk" viewBox="0 0 200 220">
+      <use href="#pico-base" width="200" height="220"/>
+      <ellipse cx="74" cy="100" rx="19" ry="23" fill="url(#pEye)"/>
+      <ellipse cx="126" cy="100" rx="19" ry="23" fill="url(#pEye)"/>
+      <circle cx="78" cy="104" r="12" fill="url(#pPupil)"/>
+      <circle cx="130" cy="104" r="12" fill="url(#pPupil)"/>
+      <circle cx="83" cy="98" r="4.6" fill="#fff"/><circle cx="135" cy="98" r="4.6" fill="#fff"/>
+      <circle cx="74" cy="110" r="2" fill="#fff" opacity=".8"/><circle cx="126" cy="110" r="2" fill="#fff" opacity=".8"/>
+      <path d="M86 127 Q100 150 116 127 Z" fill="#5A0E1C"/>
+      <path d="M93 138 Q101 132 109 138 Q101 146 93 138Z" fill="#FF8A9A"/>
+    </symbol>
+
+    <symbol id="pico-tease" viewBox="0 0 200 220">
+      <use href="#pico-base" width="200" height="220"/>
+      <path d="M57 104 Q74 90 91 104" stroke="#2A0E16" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="126" cy="100" rx="19" ry="23" fill="url(#pEye)"/>
+      <circle cx="134" cy="102" r="12" fill="url(#pPupil)"/>
+      <circle cx="139" cy="96" r="4.6" fill="#fff"/>
+      <path d="M118 74 Q130 66 144 74" stroke="#8E1527" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M82 130 Q102 142 120 125" stroke="#5A0E1C" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="111" cy="139" rx="7" ry="7.5" fill="#FF8A9A"/>
+      <path d="M111 134 V143" stroke="#E0607A" stroke-width="1.5"/>
+    </symbol>
+
+    <!-- Formes lisses (24x24) -->
+    <symbol id="s-tri" viewBox="0 0 24 24"><path d="M12 2.5 L22.5 20.5 H1.5 Z" stroke-linejoin="round"/></symbol>
+    <symbol id="s-dia" viewBox="0 0 24 24"><path d="M12 1.5 L22.5 12 L12 22.5 L1.5 12 Z"/></symbol>
+    <symbol id="s-cir" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5"/></symbol>
+    <symbol id="s-sq" viewBox="0 0 24 24"><rect x="2.5" y="2.5" width="19" height="19" rx="3"/></symbol>
+    <!-- Formes pixel (8x8) -->
+    <symbol id="p-tri" viewBox="0 0 8 8"><path d="M3 0h2v2h1v2h1v2h1v2H0V6h1V4h1V2h1z"/></symbol>
+    <symbol id="p-dia" viewBox="0 0 8 8"><path d="M3 0h2v1h1v1h1v1h1v2H7v1H6v1H5v1H3V7H2V6H1V5H0V3h1V2h1V1h1z"/></symbol>
+    <symbol id="p-cir" viewBox="0 0 8 8"><path d="M2 0h4v1h1v1h1v4H7v1H6v1H2V7H1V6H0V2h1V1h1z"/></symbol>
+    <symbol id="p-sq" viewBox="0 0 8 8"><path d="M1 1h6v6H1z"/></symbol>
+    <symbol id="p-star" viewBox="0 0 7 7"><path d="M3 0h1v2h1v1h2v1H5v1H4v2H3V5H2V4H0V3h2V2h1z"/></symbol>
+    <symbol id="p-heart" viewBox="0 0 7 6"><path d="M1 0h2v1h1V0h2v1h1v2H6v1H5v1H4v1H3V5H2V4H1V3H0V1h1z"/></symbol>
+    <symbol id="p-arrow" viewBox="0 0 7 7"><path d="M3 0h1v1h1v1h1v1h1v1H5v3H2V4H0V3h1V2h1V1h1z"/></symbol>
+  </defs>
+</svg>
+
+<div class="page">
+
+  <header class="intro">
+    <div>
+      <img src="../imports/tasmane-logo.png" alt="Tasmane">
+      <h1><small>TazQuiz · directions visuelles · passe 2</small>Arcade × mascotte 3D :<br>trois façons de les marier</h1>
+    </div>
+    <div class="meta">
+      <p>Même contenu, même mascotte, trois personnalités. Question de démo : <b>« Combien de cœurs a une pieuvre ? »</b> (bonne réponse : trois). Réponses repérées par <b>couleur + lettre + forme</b> (triangle, losange, rond, carré).</p>
+      <p style="margin-top:8px"><b>Pépite</b>, la mascotte, est ici dessinée en SVG pour suggérer un jouet 3D brillant. En production ce serait un vrai rendu 3D (Blender ou Spline), avec quelques poses. Police de charte Aileron indisponible ici : remplacée par la police système.</p>
+    </div>
+  </header>
+
+  <!-- ===================================================== -->
+  <!--  1. BORNE D'ARCADE                                    -->
+  <!-- ===================================================== -->
+  <section class="dir d1">
+    <div class="dir-head">
+      <div class="dir-num" style="background:#07070D;font-family:var(--pixel);font-size:30px;color:#FFC93C">1</div>
+      <div>
+        <h2><em>Direction 1</em>Borne d'arcade</h2>
+        <p>On entre dans une vraie borne des années 80 : écran noir, balayage CRT, typo pixel, HUD « HI-SCORE » et clignotements. Pépite, lisse et brillante, est la seule chose « moderne » de l'écran : le contraste en fait la star. Effet nostalgie garanti en interne, plus risqué à lire au fond d'une salle client.</p>
+      </div>
+      <dl class="traits">
+        <dt>Densité</dt><dd>Forte, HUD partout, beaucoup de signaux</dd>
+        <dt>Typo</dt><dd>Press Start 2P (HUD, chiffres) + VT323 (énoncés)</dd>
+        <dt>Couleurs</dt><dd>Noir CRT, néons saturés dérivés de la charte</dd>
+        <dt>Mouvement</dt><dd>Saccadé : clignotements en steps(), scintillement, sons 8-bit</dd>
+      </dl>
+    </div>
+
+    <div class="row">
+      <figure>
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>TazQuiz · grand écran · PIN 482 913</span></div>
+          <div class="screen">
+            <div class="stars"></div>
+            <div class="hud">
+              <div><span class="lab">QUESTION</span><span class="val">04/12</span></div>
+              <div class="logo-plate"><img src="../imports/tasmane-logo.png" alt="Tasmane"></div>
+              <div class="right"><span class="lab">HI-SCORE</span><span class="val">CAPITAINE EXCEL 5260</span></div>
+            </div>
+            <div class="q"><small>QUESTION 04 · SCORÉE</small>Combien de cœurs a une pieuvre ?</div>
+            <div class="mid">
+              <div class="host">
+                <svg class="pico bob" viewBox="0 0 200 220"><use href="#pico-talk" width="200" height="220"/></svg>
+                <div class="bubble"><b>PÉPITE :</b>INDICE : ELLE A PLUS DE CŒUR QUE MOI UN LUNDI MATIN.</div>
+              </div>
+              <div class="timer"><div class="lab">TEMPS</div><div class="num">09</div></div>
+              <div class="count"><div class="lab">RÉPONSES</div><div class="num">27/40</div><div class="pbar"><i></i></div></div>
+            </div>
+            <div class="answers">
+              <div class="ans a"><span class="L">A</span><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg>Un seul</div>
+              <div class="ans b"><span class="L">B</span><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg>Trois</div>
+              <div class="ans c"><span class="L">C</span><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg>Huit, un par bras</div>
+              <div class="ans d"><span class="L">D</span><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg>Aucun, elle carbure au café</div>
+            </div>
+          </div>
+        </div>
+        <figcaption>Grand écran · question en cours <span>· chrono qui clignote, compteur de réponses en barre segmentée</span></figcaption>
+      </figure>
+
+      <figure>
+        <div class="phone"><div class="pscreen">
+          <div class="sbar"><span>9:41</span><span>●●● 4G</span></div>
+          <div class="ph">
+            <div class="who"><span>1UP · SLIDE MASTER</span><span>Q04</span></div>
+            <div class="ok">BONNE<br>RÉPONSE !</div>
+            <div class="big">+1047<small>POINTS</small></div>
+            <div class="boost">BOOST · SÉRIE x3</div>
+            <div class="lines">
+              <div><span>VITESSE</span><span>+847</span></div>
+              <div><span>BONUS SÉRIE</span><span>+200</span></div>
+              <div><span>SCORE</span><span>4380</span></div>
+            </div>
+            <div class="rank">
+              <div><span>RANG</span><b>04</b></div>
+              <div><span>SUR</span><b>40</b></div>
+            </div>
+            <div class="rival">
+              <svg viewBox="0 0 7 7"><use href="#p-arrow"/></svg>
+              <div><span>JUSTE DEVANT TOI</span><b>NINJA DU POST-IT<br><em>-132 PTS</em></b></div>
+            </div>
+          </div>
+        </div></div>
+        <figcaption>Téléphone · après la question</figcaption>
+      </figure>
+    </div>
+
+    <div class="row">
+      <figure>
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>TazQuiz · grand écran · PIN 482 913</span></div>
+          <div class="screen">
+            <div class="stars"></div>
+            <div class="hud">
+              <div><span class="lab">RÉPARTITION</span><span class="val">40/40 ONT JOUÉ</span></div>
+              <div class="logo-plate"><img src="../imports/tasmane-logo.png" alt="Tasmane"></div>
+              <div class="right"><span class="lab">QUESTION</span><span class="val">04/12</span></div>
+            </div>
+            <div class="q" style="font-size:36px;padding-top:16px"><small>COMBIEN DE CŒURS A UNE PIEUVRE ?</small></div>
+            <div class="bars">
+              <div class="col a"><span class="n">07</span><div class="bar" style="height:91px"></div><span class="foot"><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg>A</span><span class="lbl">Un seul</span></div>
+              <div class="col b ok"><span class="tag">BONNE RÉPONSE</span><span class="n">22</span><div class="bar" style="height:182px"></div><span class="foot"><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg>B</span><span class="lbl">Trois</span></div>
+              <div class="col c"><span class="n">07</span><div class="bar" style="height:91px"></div><span class="foot"><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg>C</span><span class="lbl">Huit</span></div>
+              <div class="col d"><span class="n">04</span><div class="bar" style="height:52px"></div><span class="foot"><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg>D</span><span class="lbl">Au café</span></div>
+            </div>
+            <div class="tease">
+              <div class="bubble"><b>PÉPITE :</b>4 JOUEURS PENSENT QU'ELLE CARBURE AU CAFÉ. JE NE DÉNONCERAI PERSONNE.</div>
+              <svg class="pico bob" viewBox="0 0 200 220" style="width:130px;height:143px;filter:drop-shadow(0 0 18px rgba(255,201,60,.45))"><use href="#pico-tease" width="200" height="220"/></svg>
+            </div>
+            <div class="press">CONTINUE ? <b>▶ APPUIE SUR ESPACE</b> POUR LE CLASSEMENT</div>
+          </div>
+        </div>
+        <figcaption>Grand écran · répartition des réponses <span>· barres en blocs, la bonne réponse s'allume, Pépite chambre la réponse absurde</span></figcaption>
+      </figure>
+      <aside class="side">
+        <div>
+          <h4>Palette</h4>
+          <div class="palette">
+            <div class="sw"><i style="background:#07070D"></i><div><b>#07070D</b>Noir CRT</div></div>
+            <div class="sw"><i style="background:#2EE6FF"></i><div><b>#2EE6FF</b>Cyan HUD</div></div>
+            <div class="sw"><i style="background:#FF4D6D"></i><div><b>#FF4D6D</b>A · triangle</div></div>
+            <div class="sw"><i style="background:#2EA8FF"></i><div><b>#2EA8FF</b>B · losange</div></div>
+            <div class="sw"><i style="background:#FFC93C"></i><div><b>#FFC93C</b>C · rond</div></div>
+            <div class="sw"><i style="background:#19D9A0"></i><div><b>#19D9A0</b>D · carré</div></div>
+          </div>
+        </div>
+        <div><h4>Ce qui marche</h4><p>Ambiance immédiate, très « jeu ». Le contraste pixel / 3D est drôle et mémorable.</p></div>
+        <div><h4>Points de vigilance</h4><p>Typo pixel moins lisible au fond d'une salle ou dans Teams. Fond noir moins « présentable » chez un client sobre. Logo posé sur une pastille blanche (pas de recoloration).</p></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!--  2. ARCADE MODERNE                                    -->
+  <!-- ===================================================== -->
+  <section class="dir d2">
+    <div class="dir-head">
+      <div class="dir-num" style="background:#FFD23F;color:#111318">2</div>
+      <div>
+        <h2><em>Direction 2</em>Arcade moderne</h2>
+        <p>On garde l'énergie de la borne (chrono géant, record, scores qui claquent) mais on la peint en aplats de couleurs francs, grosses cartes arrondies et typo ultra-grasse, façon Nixtio. Pépite y est chez elle : tout l'univers est aussi rond et jouet qu'elle. Le plus lisible et le plus « présentable » chez un client.</p>
+      </div>
+      <dl class="traits">
+        <dt>Densité</dt><dd>Aérée, peu d'éléments mais très gros</dd>
+        <dt>Typo</dt><dd>Sans grasse 800-900 (Aileron → repli système), chiffres géants</dd>
+        <dt>Couleurs</dt><dd>Aplats vifs jaune, vert, corail, marine ; cartes blanches et noires</dd>
+        <dt>Mouvement</dt><dd>Élastique : rebonds, pop des cartes, mascotte qui sautille</dd>
+      </dl>
+    </div>
+
+    <div class="row">
+      <figure>
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>TazQuiz · grand écran · PIN 482 913</span></div>
+          <div class="screen">
+            <div class="blk k1"></div><div class="blk k2"></div><div class="blk k3"></div><div class="blk k4"></div>
+            <div class="wrap">
+              <div class="top">
+                <span class="pill dark">Question 4 / 12</span>
+                <span class="pill logo"><img src="../imports/tasmane-logo.png" alt="Tasmane"></span>
+                <span class="sp"></span>
+                <span class="pill"><svg viewBox="0 0 7 6"><use href="#p-heart"/></svg>Record : Capitaine Excel · 5 260</span>
+              </div>
+              <div class="qcard"><small>Culture générale</small><h3>Combien de cœurs a une pieuvre ?</h3></div>
+              <div class="ring"><b>9</b></div>
+              <div class="answers">
+                <div class="ans a"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-tri"/></svg><i>A</i></span>Un seul</div>
+                <div class="ans b"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-dia"/></svg><i>B</i></span>Trois</div>
+                <div class="ans c"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-cir"/></svg><i>C</i></span>Huit, un par bras</div>
+                <div class="ans d"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-sq"/></svg><i>D</i></span>Aucun, elle carbure au café</div>
+              </div>
+              <div class="host">
+                <div class="bubble"><em>Pépite</em>Indice : elle a plus de cœur que moi un lundi matin.</div>
+                <svg class="pico" viewBox="0 0 200 220"><use href="#pico-talk" width="200" height="220"/></svg>
+                <div class="pill cnt" style="margin-top:6px"><span class="dots"><i style="background:#FF5A5F;margin-left:0"></i><i style="background:#2F80ED"></i><i style="background:#00B596"></i></span><b>27</b>/ 40</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption>Grand écran · question en cours <span>· anneau de chrono qui se vide, pastilles de réponses reçues</span></figcaption>
+      </figure>
+
+      <figure>
+        <div class="phone"><div class="pscreen">
+          <div class="blk k1"></div><div class="blk k2"></div>
+          <div class="sbar"><span>9:41</span><span>●●● 4G</span></div>
+          <div class="ph">
+            <div class="who">Slide Master <span>Q4 / 12</span></div>
+            <div class="card gain"><small>Bonne réponse !</small><b>+1 047</b>
+              <div class="chips"><i>Vitesse +847</i><i>Série +200</i><i class="boost">En boost x3</i></div>
+            </div>
+            <div class="duo">
+              <div class="card dark"><small>Rang</small><b>4<sup>e</sup></b><small style="opacity:.6;text-transform:none;letter-spacing:0">sur 40</small></div>
+              <div class="card"><small>Score</small><b>4 380</b></div>
+            </div>
+            <div class="card coral riv">
+              <span class="arr">↑</span>
+              <div><small>Juste devant toi</small><b>Ninja du Post-it</b><span>à 132 pts</span></div>
+            </div>
+          </div>
+          <div class="peek-bub">On le double ?</div>
+          <svg class="pico peek" viewBox="0 0 200 220"><use href="#pico-talk" width="200" height="220"/></svg>
+        </div></div>
+        <figcaption>Téléphone · après la question</figcaption>
+      </figure>
+    </div>
+
+    <div class="row">
+      <figure>
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>TazQuiz · grand écran · PIN 482 913</span></div>
+          <div class="screen">
+            <div class="blk k1"></div><div class="blk k2"></div><div class="blk k3"></div><div class="blk k4"></div>
+            <div class="rwrap">
+              <div class="top" style="display:flex;gap:10px;align-items:center">
+                <span class="pill dark">Question 4 / 12</span>
+                <span class="pill logo"><img src="../imports/tasmane-logo.png" alt="Tasmane"></span>
+                <span class="sp" style="flex:1"></span>
+                <span class="pill">40 / 40 ont répondu</span>
+              </div>
+              <div class="rmain">
+                <div class="rcard">
+                  <h3>Combien de cœurs a une pieuvre ?</h3>
+                  <div class="rcols">
+                    <div class="rc a"><span class="n">7</span><div class="bar" style="height:84px"></div><div class="lab"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-tri"/></svg></span>Un seul</div></div>
+                    <div class="rc b ok"><span class="okb">Bonne réponse</span><span class="n">22</span><div class="bar" style="height:220px;animation-delay:.15s"></div><div class="lab"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-dia"/></svg></span>Trois</div></div>
+                    <div class="rc c"><span class="n">7</span><div class="bar" style="height:84px;animation-delay:.3s"></div><div class="lab"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-cir"/></svg></span>Huit</div></div>
+                    <div class="rc d"><span class="n">4</span><div class="bar" style="height:48px;animation-delay:.45s"></div><div class="lab"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-sq"/></svg></span>Au café</div></div>
+                  </div>
+                </div>
+                <div class="rhost">
+                  <div class="bubble" style="background:#fff;border-radius:22px;padding:14px 16px;font-size:16px;font-weight:800;line-height:1.25;position:relative;box-shadow:0 8px 0 rgba(17,19,24,.12);margin-bottom:10px"><em style="font-style:normal;display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#F55364;margin-bottom:4px">Pépite</em>4 d'entre vous pensent qu'elle carbure au café. Je ne dénoncerai personne.</div>
+                  <svg class="pico" viewBox="0 0 200 220"><use href="#pico-tease" width="200" height="220"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption>Grand écran · répartition des réponses <span>· colonnes qui jaillissent avec rebond, la bonne réponse cerclée de noir</span></figcaption>
+      </figure>
+      <aside class="side">
+        <div>
+          <h4>Palette</h4>
+          <div class="palette">
+            <div class="sw"><i style="background:#FFD23F"></i><div><b>#FFD23F</b>Fond jaune</div></div>
+            <div class="sw"><i style="background:#111318"></i><div><b>#111318</b>Cartes noires</div></div>
+            <div class="sw"><i style="background:#FF5A5F"></i><div><b>#FF5A5F</b>A · triangle</div></div>
+            <div class="sw"><i style="background:#2F80ED"></i><div><b>#2F80ED</b>B · losange</div></div>
+            <div class="sw"><i style="background:#FFC531"></i><div><b>#FFC531</b>C · rond</div></div>
+            <div class="sw"><i style="background:#00B596"></i><div><b>#00B596</b>D · carré</div></div>
+          </div>
+        </div>
+        <div><h4>Ce qui marche</h4><p>Lecture parfaite de loin et dans Teams. Univers cohérent avec des mascottes 3D type Nixtio. Facile à décliner en fonds d'écran (CAP-10) en changeant la composition d'aplats.</p></div>
+        <div><h4>Points de vigilance</h4><p>Le côté « old school » est presque perdu : l'arcade ne passe plus que par le rythme et les sons. Risque de ressembler à Kahoot si on n'ose pas les aplats.</p></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!--  3. HYBRIDE                                           -->
+  <!-- ===================================================== -->
+  <section class="dir d3">
+    <div class="dir-head">
+      <div class="dir-num" style="background:#1B2B45;font-family:var(--pixel2);font-size:38px;color:#FFD45C">3</div>
+      <div>
+        <h2><em>Direction 3</em>Hybride</h2>
+        <p>La mise en page est moderne et douce (fond bleu nuit, cartes crème arrondies, typo lisible), mais tout ce qui se compte parle pixel : chrono, scores, rangs, compteurs, petites étoiles et cœurs de série. Pépite tient le rôle d'animatrice télé sur son petit plateau. On garde la nostalgie là où elle fait jouer, sans sacrifier la lisibilité.</p>
+      </div>
+      <dl class="traits">
+        <dt>Densité</dt><dd>Moyenne, plateau télé : présentatrice à gauche, jeu à droite</dd>
+        <dt>Typo</dt><dd>Sans pour lire (Aileron → repli) + Silkscreen / Press Start 2P pour compter</dd>
+        <dt>Couleurs</dt><dd>Bleu nuit dérivé du marine Tasmane, crème, couleurs charte pour A-D</dd>
+        <dt>Mouvement</dt><dd>Fluide pour les cartes, saccadé pour les chiffres et sprites</dd>
+      </dl>
+    </div>
+
+    <div class="row">
+      <figure>
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>TazQuiz · grand écran · PIN 482 913</span></div>
+          <div class="screen">
+            <svg class="pix" viewBox="0 0 7 7" style="width:21px;left:40px;top:44px"><use href="#p-star"/></svg>
+            <svg class="pix" viewBox="0 0 7 7" style="width:14px;left:230px;top:96px;animation-delay:.5s"><use href="#p-star"/></svg>
+            <svg class="pix" viewBox="0 0 7 7" style="width:14px;left:70px;top:190px;animation-delay:1s;fill:#F55364"><use href="#p-star"/></svg>
+            <div class="wrap">
+              <div class="stage">
+                <div class="bubble"><span class="tagname">PÉPITE</span><br>Indice : elle a plus de cœur que moi un lundi matin.</div>
+                <svg class="pico bob" viewBox="0 0 200 220"><use href="#pico-talk" width="200" height="220"/></svg>
+                <div class="podium"><span>TAZQUIZ LIVE</span></div>
+              </div>
+              <div class="main">
+                <div class="top">
+                  <span class="chip">Question <span class="px">04/12</span></span>
+                  <span class="logo-plate"><img src="../imports/tasmane-logo.png" alt="Tasmane"></span>
+                  <span class="sp"></span>
+                  <span class="chip">Record <span class="px">5260</span> Capitaine Excel</span>
+                </div>
+                <div class="qrow">
+                  <div class="qcard"><small>CULTURE GÉ</small><h3>Combien de cœurs a une pieuvre ?</h3></div>
+                  <div class="timer"><b>09</b><div class="segs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="off"></i><i class="off"></i></div><small>secondes</small></div>
+                </div>
+                <div class="answers">
+                  <div class="ans a"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-tri"/></svg><span>A</span></span>Un seul</div>
+                  <div class="ans b"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-dia"/></svg><span>B</span></span>Trois</div>
+                  <div class="ans c"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-cir"/></svg><span>C</span></span>Huit, un par bras</div>
+                  <div class="ans d"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-sq"/></svg><span>D</span></span>Aucun, elle carbure au café</div>
+                </div>
+                <div class="meter">Réponses <span class="px">27/40</span><span class="track"><i></i></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption>Grand écran · question en cours <span>· chrono pixel en cartouche jaune, compteur de réponses segmenté</span></figcaption>
+      </figure>
+
+      <figure>
+        <div class="phone"><div class="pscreen">
+          <div class="phead">
+            <div class="sbar"><span>9:41</span><span>●●● 4G</span></div>
+            <div class="who">Slide Master <span class="px">Q04/12</span></div>
+            <h4>Bonne réponse !</h4>
+            <div class="gain">+1047<small>points gagnés</small></div>
+          </div>
+          <div class="pbody">
+            <div class="pcard row2">
+              <div><small>Rang</small><b>4e/40</b></div>
+              <div><small>Score</small><b>4380</b></div>
+            </div>
+            <div class="pcard streak">
+              <span class="hearts"><svg viewBox="0 0 7 6"><use href="#p-heart"/></svg><svg viewBox="0 0 7 6"><use href="#p-heart"/></svg><svg viewBox="0 0 7 6"><use href="#p-heart"/></svg></span>
+              Série +200
+              <span class="tag">BOOST x3</span>
+            </div>
+            <div class="pcard rv">
+              <svg viewBox="0 0 7 7"><use href="#p-arrow"/></svg>
+              <div><small>Juste devant toi</small><b>Ninja du Post-it</b></div>
+              <div class="px">132<small>pts d'écart</small></div>
+            </div>
+            <div class="pmasc">
+              <svg class="pico bob" viewBox="0 0 200 220"><use href="#pico-talk" width="200" height="220"/></svg>
+              <p>132 points, c'est une question rapide. Fonce !</p>
+            </div>
+          </div>
+        </div></div>
+        <figcaption>Téléphone · après la question</figcaption>
+      </figure>
+    </div>
+
+    <div class="row">
+      <figure>
+        <div class="browser"><div class="bar"><i></i><i></i><i></i><span>TazQuiz · grand écran · PIN 482 913</span></div>
+          <div class="screen">
+            <svg class="pix" viewBox="0 0 7 7" style="width:21px;left:40px;top:44px"><use href="#p-star"/></svg>
+            <svg class="pix" viewBox="0 0 7 7" style="width:14px;left:240px;top:120px;animation-delay:.5s"><use href="#p-star"/></svg>
+            <div class="wrap">
+              <div class="stage">
+                <div class="bubble"><span class="tagname">PÉPITE</span><br>4 d'entre vous pensent qu'elle carbure au café. Je ne dénoncerai personne.</div>
+                <svg class="pico bob" viewBox="0 0 200 220"><use href="#pico-tease" width="200" height="220"/></svg>
+                <div class="podium"><span>TAZQUIZ LIVE</span></div>
+              </div>
+              <div class="main">
+                <div class="top">
+                  <span class="chip">Question <span class="px">04/12</span></span>
+                  <span class="logo-plate"><img src="../imports/tasmane-logo.png" alt="Tasmane"></span>
+                  <span class="sp"></span>
+                  <span class="chip">Réponses <span class="px">40/40</span></span>
+                </div>
+                <div class="rlist">
+                  <h3>Combien de cœurs a une pieuvre ? <span>RÉPARTITION</span></h3>
+                  <div class="rl a"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-tri"/></svg></span><div class="tr"><i style="width:32%"></i><span>Un seul</span></div><span class="n">7</span></div>
+                  <div class="rl b ok"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-dia"/></svg></span><div class="tr"><i style="width:100%"></i><span>Trois</span><em>BONNE RÉPONSE</em></div><span class="n">22</span></div>
+                  <div class="rl c"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-cir"/></svg></span><div class="tr"><i style="width:32%"></i><span>Huit, un par bras</span></div><span class="n">7</span></div>
+                  <div class="rl d lol"><span class="L"><svg viewBox="0 0 24 24"><use href="#s-sq"/></svg></span><div class="tr"><i style="width:18%"></i><span>Aucun, elle carbure au café</span></div><span class="n">4</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <figcaption>Grand écran · répartition des réponses <span>· barres lisses remplies de segments pixel, la réponse absurde soulignée en pointillé</span></figcaption>
+      </figure>
+      <aside class="side">
+        <div>
+          <h4>Palette</h4>
+          <div class="palette">
+            <div class="sw"><i style="background:#1B2B45"></i><div><b>#1B2B45</b>Bleu nuit</div></div>
+            <div class="sw"><i style="background:#FBF7F2"></i><div><b>#FBF7F2</b>Crème</div></div>
+            <div class="sw"><i style="background:#F55364"></i><div><b>#F55364</b>A · triangle</div></div>
+            <div class="sw"><i style="background:#008DD5"></i><div><b>#008DD5</b>B · losange</div></div>
+            <div class="sw"><i style="background:#F2B33D"></i><div><b>#F2B33D</b>C · rond</div></div>
+            <div class="sw"><i style="background:#00B596"></i><div><b>#00B596</b>D · carré</div></div>
+          </div>
+        </div>
+        <div><h4>Ce qui marche</h4><p>Le plus proche de la charte (marine, rouge, process blue, vert). Lisible chez un client, mais l'arcade reste visible à chaque chiffre. Le « plateau » donne une vraie place à la mascotte présentatrice.</p></div>
+        <div><h4>Points de vigilance</h4><p>La mascotte occupe une colonne : moins de place pour 6 réponses longues (à vérifier). Équilibre à tenir : trop de pixel et on retombe en 1, trop peu et on retombe en 2.</p></div>
+      </aside>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
