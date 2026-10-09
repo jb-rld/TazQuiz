@@ -1,1 +1,4 @@
 .DS_Store
+
+# Charte graphique Tasmane (PDF 24 Mo), gardée en local
+_bmad-output/initiative-tazquiz/ux-tazquiz/imports/*.pdf
