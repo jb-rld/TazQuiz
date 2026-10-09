@@ -1,0 +1,532 @@
+<title>Casting mascotte TazQuiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout : en-tête court, grille de 6 fiches « casting » (3 > 2 > 1 colonnes), puis zone d'avis de l'équipe et résultats. */
+:root{
+  --paper:#ECE6DD; --surface:#FFFFFF; --ink:#1B2B45; --muted:#5B6478; --line:#D8CFC2;
+  --accent:#C8243A; --chip:#273C59; --chip-ink:#FFFFFF; --gold:#FFC83D; --ok:#007A55; --no:#A3283A;
+  --sel:#FFF4D6; --shadow:rgba(27,43,69,.35);
+  --sans:"Archivo","Aileron",-apple-system,"Segoe UI",Arial,sans-serif;
+  --pixel:"Press Start 2P","Courier New",monospace;
+  --pix2:"Silkscreen","Courier New",monospace;
+  /* scène (thème du grand écran, piloté par la bascule) */
+  --st-bg:#0B1220; --st-halo:#1A2A48; --st-dots:#1C2944; --st-bub:#FFFFFF; --st-bub-b:#FFFFFF; --st-bub-ink:#1B2B45; --st-sh:#000000; --st-tag:#FF5468; --st-tag-ink:#0B1220; --st-scan:rgba(0,0,0,.28);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1626; --surface:#16223A; --ink:#F4F2EC; --muted:#A9B3C7; --line:#2C3D5E;
+  --accent:#FF6B7C; --chip:#2C3D5E; --chip-ink:#F4F2EC; --gold:#FFC83D; --ok:#1FD19B; --no:#FF8A98;
+  --sel:#2A2A1E; --shadow:rgba(0,0,0,.6); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0E1626; --surface:#16223A; --ink:#F4F2EC; --muted:#A9B3C7; --line:#2C3D5E;
+  --accent:#FF6B7C; --chip:#2C3D5E; --chip-ink:#F4F2EC; --gold:#FFC83D; --ok:#1FD19B; --no:#FF8A98;
+  --sel:#2A2A1E; --shadow:rgba(0,0,0,.6); color-scheme:dark }
+.stage-light{ --st-bg:#F3EDE1; --st-halo:#FBF7EF; --st-dots:#E2D8C6; --st-bub:#FFFFFF; --st-bub-b:#273C59; --st-bub-ink:#1B2B45; --st-sh:#273C59; --st-tag:#C8243A; --st-tag-ink:#FFFFFF; --st-scan:rgba(39,60,89,.05) }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:20px;padding-block:40px 120px;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+
+/* en-tête */
+.head{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:32px;align-items:end}
+.eyebrow{font:700 12px var(--pix2);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.head h1{font-size:clamp(34px,5vw,54px);font-weight:900;letter-spacing:-.03em;line-height:1.02;margin-top:10px}
+.head h1 span{display:block;font:400 clamp(14px,2vw,20px) var(--pixel);letter-spacing:0;margin-top:14px;color:var(--muted)}
+.brief{display:flex;flex-direction:column;gap:10px;color:var(--muted);max-width:60ch}
+.brief b{color:var(--ink)}
+.fixed{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.fixed span{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;border:1.5px solid var(--line);color:var(--ink)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-top:2px solid var(--line);padding-top:18px}
+.toolbar p{color:var(--muted);font-size:14px}
+.seg{display:inline-flex;border:2px solid var(--chip);border-radius:12px;overflow:hidden}
+.seg button{font:700 12px var(--pix2);letter-spacing:.06em;padding:9px 14px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--chip);color:var(--chip-ink)}
+.seg button:focus-visible,.btn:focus-visible,.pick:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+/* grille de fiches */
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.card{background:var(--surface);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 40px -30px var(--shadow);border:2px solid transparent;transition:border-color .2s}
+.card.is-fav{border-color:var(--gold)}
+.card.is-veto{opacity:.72}
+
+.stage{position:relative;height:336px;overflow:hidden;background:radial-gradient(ellipse at 30% 80%,var(--st-halo) 0%,var(--st-bg) 65%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:16px 16px 18px}
+.stage::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--st-dots) 1.3px,transparent 1.4px);background-size:22px 22px}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,var(--st-scan) 0 1px,transparent 1px 3px)}
+.num{position:absolute;top:14px;left:14px;z-index:3;font:11px var(--pixel);color:var(--st-tag-ink);background:var(--st-tag);padding:6px 8px;border-radius:7px}
+.bubble{position:relative;z-index:2;background:var(--st-bub);color:var(--st-bub-ink);border:3px solid var(--st-bub-b);border-radius:16px;padding:9px 12px 10px;font-size:13.5px;font-weight:700;line-height:1.3;margin-bottom:12px;box-shadow:4px 4px 0 var(--st-sh);max-width:92%}
+.bubble::after{content:"";position:absolute;left:46%;bottom:-9px;width:14px;height:14px;background:var(--st-bub);border-right:3px solid var(--st-bub-b);border-bottom:3px solid var(--st-bub-b);transform:rotate(45deg)}
+.bubble i{display:block;font:normal 700 11px var(--pix2);letter-spacing:.05em;color:var(--st-tag);margin-bottom:3px}
+.mascot{position:relative;z-index:2;width:150px;height:165px;overflow:visible;animation:bob 2.6s ease-in-out infinite}
+.podium{position:relative;z-index:1;width:180px;height:40px;margin-top:-22px;border-radius:50%/40%;background:linear-gradient(#2E4A78,#1B2B45);box-shadow:inset 0 3px 0 rgba(255,255,255,.14),4px 6px 0 var(--st-sh);display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px}
+.podium span{font:700 10px var(--pix2);color:#FFC83D;letter-spacing:.12em}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-7px) rotate(1.5deg)}}
+@media (prefers-reduced-motion: reduce){.mascot{animation:none}}
+
+.body{padding:20px 22px 22px;display:flex;flex-direction:column;gap:14px;flex:1}
+.kind{font:700 11px var(--pix2);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.body h3{font-size:24px;font-weight:900;letter-spacing:-.02em;line-height:1.1;margin-top:4px}
+.names{display:flex;flex-wrap:wrap;gap:6px}
+.names span{font:700 12px var(--pix2);letter-spacing:.04em;background:var(--chip);color:var(--chip-ink);padding:5px 9px;border-radius:7px}
+.facts{display:grid;gap:10px;margin:0}
+.facts div{display:grid;gap:2px}
+.facts dt{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.facts dd{margin:0;font-size:14px;line-height:1.45}
+.facts .warn dt{color:var(--accent)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.tags span{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;border:1.5px solid var(--line);color:var(--muted)}
+.tags b{color:var(--ink)}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 22px 22px}
+.pick{font:700 13px var(--sans);padding:10px 8px;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.pick[aria-pressed="true"].fav{background:var(--gold);border-color:var(--gold);color:#1B2B45}
+.pick[aria-pressed="true"].veto{background:var(--no);border-color:var(--no);color:#FFFFFF}
+.pick .cnt{font:10px var(--pixel)}
+.pick[disabled]{cursor:default;opacity:.55}
+
+/* avis */
+.panel{background:var(--surface);border-radius:24px;padding:28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:32px;box-shadow:0 18px 40px -30px var(--shadow)}
+.panel h2{font-size:28px;font-weight:900;letter-spacing:-.02em}
+.panel .lead{color:var(--muted);margin-top:8px;max-width:52ch}
+.summary{margin-top:18px;display:grid;gap:6px;font-size:14px}
+.summary b{font-weight:800}
+form{display:grid;gap:14px}
+label{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:grid;gap:6px}
+input[type=text],textarea{font:15px var(--sans);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:11px 13px;width:100%;text-transform:none;letter-spacing:0;font-weight:400}
+textarea{min-height:96px;resize:vertical}
+input:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:1px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{font:700 13px var(--pix2);letter-spacing:.06em;padding:13px 18px;border-radius:12px;border:0;background:var(--chip);color:var(--chip-ink);cursor:pointer;box-shadow:4px 4px 0 var(--gold)}
+.btn[disabled]{opacity:.5;cursor:default}
+.status{font-size:14px;color:var(--muted)}
+.status.ok{color:var(--ok)}.status.err{color:var(--no)}
+
+.results h2{font-size:28px;font-weight:900;letter-spacing:-.02em}
+.results .lead{color:var(--muted);margin-top:6px}
+.board{margin-top:18px;display:grid;gap:12px}
+.score{display:grid;grid-template-columns:minmax(0,160px) minmax(0,1fr) auto;gap:14px;align-items:center;font-size:14px}
+.bar{height:14px;background:var(--line);border-radius:4px;overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--gold)}
+.score .n{font:11px var(--pixel);font-variant-numeric:tabular-nums;white-space:nowrap}
+.score .n em{font-style:normal;color:var(--no);margin-left:10px}
+.voices{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.voice{border:2px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:6px;font-size:14px;min-width:0}
+.voice .who{font-weight:800}
+.voice .meta{color:var(--muted);font-size:13px}
+.voice p{overflow-wrap:anywhere}
+.empty{color:var(--muted);border:2px dashed var(--line);border-radius:16px;padding:20px;margin-top:18px}
+
+@media (max-width:1020px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.head{grid-template-columns:1fr}}
+@media (max-width:720px){.grid{grid-template-columns:1fr}.panel{grid-template-columns:1fr;padding:22px}.score{grid-template-columns:minmax(0,1fr) auto}.score .bar{grid-column:1 / -1;order:3}}
+</style>
+
+<!-- ===== Personnages (SVG qui suggère un jouet 3D ; en production : vrai rendu 3D) ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <filter id="blur5" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <radialGradient id="eyeW" cx="40%" cy="32%" r="72%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE0EC"/></radialGradient>
+  <radialGradient id="pupil" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#3D5072"/><stop offset="1" stop-color="#0B1020"/></radialGradient>
+  <!-- diable -->
+  <radialGradient id="dFur" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="#7A5E66"/><stop offset=".45" stop-color="#3B2A30"/><stop offset="1" stop-color="#150B10"/></radialGradient>
+  <radialGradient id="dMuz" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#8E7078"/><stop offset="1" stop-color="#4A343B"/></radialGradient>
+  <radialGradient id="pink" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFC4CC"/><stop offset=".55" stop-color="#F55364"/><stop offset="1" stop-color="#A21F35"/></radialGradient>
+  <linearGradient id="dBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D9D3CF"/></linearGradient>
+  <!-- borne -->
+  <linearGradient id="bBody" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4C6A99"/><stop offset=".5" stop-color="#273C59"/><stop offset="1" stop-color="#16243A"/></linearGradient>
+  <linearGradient id="bMarq" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE59A"/><stop offset="1" stop-color="#E9A800"/></linearGradient>
+  <linearGradient id="bPanel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8794"/><stop offset="1" stop-color="#C02E45"/></linearGradient>
+  <radialGradient id="bScreen" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#143A55"/><stop offset="1" stop-color="#060C16"/></radialGradient>
+  <radialGradient id="ball" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFF6C2"/><stop offset=".5" stop-color="#FFC93C"/><stop offset="1" stop-color="#C97C00"/></radialGradient>
+  <!-- buzzer -->
+  <radialGradient id="zDome" cx="34%" cy="26%" r="85%"><stop offset="0" stop-color="#FFC0C6"/><stop offset=".42" stop-color="#F55364"/><stop offset="1" stop-color="#8E1428"/></radialGradient>
+  <linearGradient id="zBase" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5A6C8C"/><stop offset=".45" stop-color="#2B3B58"/><stop offset="1" stop-color="#121C2E"/></linearGradient>
+  <linearGradient id="zRing" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F4F6FA"/><stop offset=".6" stop-color="#B8C0CE"/><stop offset="1" stop-color="#7C879A"/></linearGradient>
+  <!-- caméléon -->
+  <radialGradient id="cSkin" cx="36%" cy="28%" r="80%"><stop offset="0" stop-color="#C4F7E0"/><stop offset=".45" stop-color="#1FD19B"/><stop offset="1" stop-color="#06704E"/></radialGradient>
+  <radialGradient id="cDark" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#37C994"/><stop offset="1" stop-color="#045C40"/></radialGradient>
+  <linearGradient id="cTail" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1FD19B"/><stop offset=".3" stop-color="#FFC83D"/><stop offset=".62" stop-color="#2EA8FF"/><stop offset="1" stop-color="#FF5468"/></linearGradient>
+  <!-- capybara -->
+  <radialGradient id="kFur" cx="35%" cy="26%" r="82%"><stop offset="0" stop-color="#F1CFA2"/><stop offset=".45" stop-color="#B9844E"/><stop offset="1" stop-color="#6A4120"/></radialGradient>
+  <radialGradient id="kSnout" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#B9875A"/><stop offset="1" stop-color="#704625"/></radialGradient>
+  <radialGradient id="orange" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFE0A8"/><stop offset=".5" stop-color="#FF9A1F"/><stop offset="1" stop-color="#C45A00"/></radialGradient>
+  <!-- point d'interrogation -->
+  <linearGradient id="qStroke" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9FDBFF"/><stop offset=".45" stop-color="#2EA8FF"/><stop offset="1" stop-color="#0060A8"/></linearGradient>
+  <radialGradient id="qBall" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#C9EBFF"/><stop offset=".5" stop-color="#2EA8FF"/><stop offset="1" stop-color="#004E8A"/></radialGradient>
+
+  <!-- 1 · Diable de Tasmanie -->
+  <symbol id="m-diable" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="210" rx="62" ry="9" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <ellipse cx="70" cy="196" rx="24" ry="13" fill="url(#dFur)"/>
+    <ellipse cx="130" cy="196" rx="24" ry="13" fill="url(#dFur)"/>
+    <ellipse cx="28" cy="146" rx="13" ry="23" transform="rotate(26 28 146)" fill="url(#dFur)"/>
+    <ellipse cx="172" cy="138" rx="13" ry="23" transform="rotate(-34 172 138)" fill="url(#dFur)"/>
+    <ellipse cx="100" cy="140" rx="72" ry="58" fill="url(#dFur)"/>
+    <circle cx="46" cy="48" r="21" fill="url(#dFur)"/><circle cx="154" cy="48" r="21" fill="url(#dFur)"/>
+    <circle cx="47" cy="50" r="11" fill="url(#pink)"/><circle cx="153" cy="50" r="11" fill="url(#pink)"/>
+    <ellipse cx="100" cy="94" rx="66" ry="56" fill="url(#dFur)"/>
+    <path d="M44 150 Q100 176 156 150 Q152 170 100 184 Q48 170 44 150Z" fill="url(#dBand)"/>
+    <ellipse cx="62" cy="62" rx="24" ry="11" transform="rotate(-30 62 62)" fill="#fff" opacity=".22" filter="url(#blur2)"/>
+    <ellipse cx="100" cy="114" rx="34" ry="24" fill="url(#dMuz)"/>
+    <ellipse cx="100" cy="102" rx="13" ry="8.5" fill="url(#pink)"/>
+    <ellipse cx="96" cy="99" rx="4" ry="2.2" fill="#fff" opacity=".8"/>
+    <path d="M82 122 Q100 136 118 122" stroke="#12080C" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+    <path d="M88 124 L92 132 L95 126Z" fill="#fff"/><path d="M112 124 L108 132 L105 126Z" fill="#fff"/>
+    <ellipse cx="76" cy="80" rx="13" ry="14" fill="url(#eyeW)"/><ellipse cx="124" cy="80" rx="13" ry="14" fill="url(#eyeW)"/>
+    <circle cx="79" cy="83" r="7.5" fill="url(#pupil)"/><circle cx="121" cy="83" r="7.5" fill="url(#pupil)"/>
+    <circle cx="82" cy="79" r="2.6" fill="#fff"/><circle cx="124" cy="79" r="2.6" fill="#fff"/>
+    <path d="M58 62 L92 72" stroke="#0B0508" stroke-width="7" stroke-linecap="round"/>
+    <path d="M142 58 Q126 60 110 68" stroke="#0B0508" stroke-width="7" stroke-linecap="round" fill="none"/>
+  </symbol>
+
+  <!-- 2 · Borne d'arcade -->
+  <symbol id="m-borne" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="210" rx="62" ry="9" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <rect x="60" y="192" width="30" height="16" rx="8" fill="#16243A"/><rect x="110" y="192" width="30" height="16" rx="8" fill="#16243A"/>
+    <ellipse cx="28" cy="150" rx="10" ry="19" transform="rotate(30 28 150)" fill="url(#bBody)"/>
+    <ellipse cx="172" cy="150" rx="10" ry="19" transform="rotate(-30 172 150)" fill="url(#bBody)"/>
+    <path d="M50 58 Q50 50 58 50 H142 Q150 50 150 58 L162 190 Q162 200 152 200 H48 Q38 200 38 190 Z" fill="url(#bBody)"/>
+    <rect x="52" y="24" width="96" height="34" rx="11" fill="url(#bMarq)"/>
+    <text x="100" y="48" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="13" fill="#7A4200">TAZ</text>
+    <rect x="58" y="66" width="84" height="66" rx="12" fill="#070C16"/>
+    <rect x="64" y="72" width="72" height="54" rx="8" fill="url(#bScreen)"/>
+    <g fill="#3FE0F0" shape-rendering="crispEdges">
+      <rect x="78" y="84" width="6" height="12"/><rect x="84" y="84" width="6" height="12"/>
+      <rect x="110" y="84" width="12" height="6"/>
+      <rect x="82" y="106" width="6" height="6"/><rect x="88" y="110" width="24" height="6"/><rect x="112" y="106" width="6" height="6"/>
+    </g>
+    <rect x="66" y="74" width="68" height="10" rx="4" fill="#fff" opacity=".07"/>
+    <path d="M42 140 H158 L168 160 H32 Z" fill="url(#bPanel)"/>
+    <line x1="68" y1="150" x2="68" y2="132" stroke="#1B1B22" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="68" cy="130" r="8" fill="url(#ball)"/>
+    <circle cx="110" cy="151" r="6" fill="#2EA8FF"/><circle cx="127" cy="149" r="6" fill="#FFC83D"/><circle cx="144" cy="151" r="6" fill="#1FD19B"/>
+    <rect x="90" y="174" width="20" height="14" rx="3" fill="#070C16"/><rect x="98" y="177" width="4" height="8" fill="#FF9A1F"/>
+    <path d="M54 60 L60 186" stroke="#fff" stroke-width="5" opacity=".18" stroke-linecap="round" filter="url(#blur2)"/>
+  </symbol>
+
+  <!-- 3 · Buzzer -->
+  <symbol id="m-buzzer" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="210" rx="62" ry="9" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <ellipse cx="72" cy="200" rx="20" ry="10" fill="#121C2E"/><ellipse cx="128" cy="200" rx="20" ry="10" fill="#121C2E"/>
+    <ellipse cx="26" cy="160" rx="10" ry="19" transform="rotate(34 26 160)" fill="url(#zBase)"/>
+    <ellipse cx="174" cy="160" rx="10" ry="19" transform="rotate(-34 174 160)" fill="url(#zBase)"/>
+    <path d="M36 146 V184 Q100 206 164 184 V146 Z" fill="url(#zBase)"/>
+    <ellipse cx="100" cy="146" rx="64" ry="16" fill="url(#zRing)"/>
+    <path d="M44 146 C44 72 70 40 100 40 C130 40 156 72 156 146 Q100 160 44 146 Z" fill="url(#zDome)"/>
+    <ellipse cx="74" cy="72" rx="20" ry="10" transform="rotate(-34 74 72)" fill="#fff" opacity=".75" filter="url(#blur2)"/>
+    <circle cx="62" cy="96" r="4" fill="#fff" opacity=".6"/>
+    <ellipse cx="82" cy="104" rx="11" ry="13" fill="url(#eyeW)"/><ellipse cx="118" cy="104" rx="11" ry="13" fill="url(#eyeW)"/>
+    <circle cx="84" cy="107" r="6.5" fill="url(#pupil)"/><circle cx="120" cy="107" r="6.5" fill="url(#pupil)"/>
+    <path d="M70 92 H94" stroke="#5A0E1C" stroke-width="4" stroke-linecap="round"/><path d="M106 90 Q118 86 130 92" stroke="#5A0E1C" stroke-width="4" stroke-linecap="round" fill="none"/>
+    <path d="M90 126 Q100 132 112 124" stroke="#5A0E1C" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+    <text x="100" y="180" text-anchor="middle" font-family="'Press Start 2P',monospace" font-size="10" fill="#FFC83D">PUSH</text>
+    <path d="M150 34 L160 24 L156 36 L168 30" stroke="#FFC83D" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M40 40 L32 30 L42 34 L36 22" stroke="#FFC83D" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- 4 · Caméléon -->
+  <symbol id="m-cameleon" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="210" rx="62" ry="9" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <path d="M140 176 C186 180 196 136 172 126 C152 118 144 146 162 150" stroke="url(#cTail)" stroke-width="15" fill="none" stroke-linecap="round"/>
+    <ellipse cx="68" cy="198" rx="20" ry="11" fill="url(#cDark)"/><ellipse cx="124" cy="198" rx="20" ry="11" fill="url(#cDark)"/>
+    <ellipse cx="30" cy="150" rx="11" ry="20" transform="rotate(30 30 150)" fill="url(#cDark)"/>
+    <ellipse cx="96" cy="146" rx="60" ry="52" fill="url(#cSkin)"/>
+    <path d="M60 158 Q96 178 132 158 Q128 176 96 184 Q64 176 60 158Z" fill="#E6FFF4" opacity=".7"/>
+    <path d="M48 76 Q70 18 128 30 Q152 36 150 70 Z" fill="url(#cDark)"/>
+    <ellipse cx="96" cy="94" rx="58" ry="46" fill="url(#cSkin)"/>
+    <ellipse cx="66" cy="66" rx="20" ry="9" transform="rotate(-28 66 66)" fill="#fff" opacity=".45" filter="url(#blur2)"/>
+    <circle cx="80" cy="140" r="5" fill="#9AF0CC" opacity=".8"/><circle cx="114" cy="132" r="4" fill="#9AF0CC" opacity=".8"/><circle cx="108" cy="154" r="3.5" fill="#9AF0CC" opacity=".8"/>
+    <circle cx="60" cy="90" r="22" fill="url(#cDark)"/><circle cx="134" cy="88" r="22" fill="url(#cDark)"/>
+    <circle cx="58" cy="90" r="11" fill="url(#eyeW)"/><circle cx="136" cy="86" r="11" fill="url(#eyeW)"/>
+    <circle cx="54" cy="93" r="6" fill="url(#pupil)"/><circle cx="140" cy="82" r="6" fill="url(#pupil)"/>
+    <circle cx="52" cy="91" r="2" fill="#fff"/><circle cx="138" cy="80" r="2" fill="#fff"/>
+    <path d="M62 118 Q98 130 134 112" stroke="#04452F" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- 5 · Capybara -->
+  <symbol id="m-capy" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="210" rx="64" ry="9" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <ellipse cx="66" cy="198" rx="22" ry="11" fill="#5A3519"/><ellipse cx="134" cy="198" rx="22" ry="11" fill="#5A3519"/>
+    <ellipse cx="28" cy="154" rx="11" ry="18" transform="rotate(24 28 154)" fill="url(#kFur)"/>
+    <ellipse cx="172" cy="154" rx="11" ry="18" transform="rotate(-24 172 154)" fill="url(#kFur)"/>
+    <ellipse cx="100" cy="146" rx="74" ry="58" fill="url(#kFur)"/>
+    <ellipse cx="58" cy="52" rx="11" ry="9" fill="#6A4120"/><ellipse cx="142" cy="52" rx="11" ry="9" fill="#6A4120"/>
+    <path d="M48 76 Q48 44 100 44 Q152 44 152 76 V108 Q152 134 100 136 Q48 134 48 108 Z" fill="url(#kFur)"/>
+    <ellipse cx="68" cy="62" rx="20" ry="9" transform="rotate(-20 68 62)" fill="#fff" opacity=".3" filter="url(#blur2)"/>
+    <rect x="64" y="94" width="72" height="38" rx="19" fill="url(#kSnout)"/>
+    <ellipse cx="86" cy="104" rx="4.5" ry="3" fill="#2A1608"/><ellipse cx="114" cy="104" rx="4.5" ry="3" fill="#2A1608"/>
+    <path d="M92 120 Q100 124 108 120" stroke="#2A1608" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="74" cy="80" rx="8" ry="4" fill="#1C0E05"/><ellipse cx="126" cy="80" rx="8" ry="4" fill="#1C0E05"/>
+    <path d="M64 77 H84" stroke="#4E2E14" stroke-width="5" stroke-linecap="round"/><path d="M116 77 H136" stroke="#4E2E14" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="100" cy="30" r="15" fill="url(#orange)"/>
+    <ellipse cx="96" cy="25" rx="4" ry="2.5" fill="#fff" opacity=".8"/>
+    <ellipse cx="110" cy="15" rx="8" ry="4" transform="rotate(-25 110 15)" fill="#2EAE5C"/>
+  </symbol>
+
+  <!-- 6 · Point d'interrogation -->
+  <symbol id="m-question" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="210" rx="50" ry="8" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <path d="M56 82 C56 30 146 28 146 80 C146 114 100 112 100 146" stroke="#003E70" stroke-width="40" fill="none" stroke-linecap="round" transform="translate(3 4)"/>
+    <path d="M56 82 C56 30 146 28 146 80 C146 114 100 112 100 146" stroke="url(#qStroke)" stroke-width="40" fill="none" stroke-linecap="round"/>
+    <path d="M58 68 C64 46 92 36 118 44" stroke="#fff" stroke-width="7" opacity=".55" fill="none" stroke-linecap="round" filter="url(#blur2)"/>
+    <ellipse cx="74" cy="134" rx="9" ry="17" transform="rotate(-50 74 134)" fill="#1E8CE0"/>
+    <ellipse cx="126" cy="134" rx="9" ry="17" transform="rotate(50 126 134)" fill="#1076C4"/>
+    <circle cx="100" cy="188" r="18" fill="url(#qBall)"/>
+    <ellipse cx="94" cy="181" rx="5" ry="3" fill="#fff" opacity=".8"/>
+    <ellipse cx="88" cy="52" rx="8" ry="10" fill="url(#eyeW)"/><ellipse cx="114" cy="52" rx="8" ry="10" fill="url(#eyeW)"/>
+    <circle cx="90" cy="55" r="5" fill="url(#pupil)"/><circle cx="116" cy="55" r="5" fill="url(#pupil)"/>
+    <path d="M80 41 L96 44" stroke="#003E70" stroke-width="3.5" stroke-linecap="round"/><path d="M106 44 L122 39" stroke="#003E70" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M94 68 Q102 72 110 66" stroke="#003E70" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  </symbol>
+</defs>
+</svg>
+
+<main class="wrap">
+  <header class="head">
+    <div>
+      <div class="eyebrow">TazQuiz · casting</div>
+      <h1>Qui présente le quiz ?<span>6 CANDIDATS · 1 PUPITRE</span></h1>
+    </div>
+    <div class="brief">
+      <p>La mascotte est la star unique de TazQuiz. Elle anime chaque partie depuis son pupitre <b>TAZQUIZ LIVE</b> sur le grand écran. On connaît déjà son caractère, il nous manque son physique et son nom.</p>
+      <p>Voici six pistes très différentes pour lancer la discussion. Les dessins suggèrent un jouet 3D brillant. En production, ce serait un vrai rendu 3D. Les répliques des bulles sont des exemples de niveau 2.</p>
+      <div class="fixed" aria-label="Ce qui est déjà décidé"><span>Pince-sans-rire</span><span>Chambreuse mais bienveillante</span><span>Une seule star</span><span>Personnage 3D</span><span>3 niveaux de mordant</span></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <p>Regarde chaque candidat sur les deux thèmes du grand écran.</p>
+    <div class="seg" role="group" aria-label="Thème du grand écran">
+      <button type="button" id="th-dark" aria-pressed="true">BORNE FONCÉE</button>
+      <button type="button" id="th-light" aria-pressed="false">ÉCRAN CRÈME</button>
+    </div>
+  </div>
+
+  <section class="grid" id="grid" aria-label="Les candidats"></section>
+
+  <section class="panel" aria-labelledby="t-avis">
+    <div>
+      <h2 id="t-avis">Ton avis</h2>
+      <p class="lead">Choisis ton coup de cœur sur les fiches (un seul) et écarte les pistes qui ne te parlent pas. Tu peux aussi proposer un nom ou une autre idée de personnage.</p>
+      <div class="summary" id="summary"></div>
+    </div>
+    <form id="form" novalidate>
+      <label for="f-name">Idée de nom
+        <input type="text" id="f-name" maxlength="40" placeholder="Ex. un nom pour ton coup de cœur">
+      </label>
+      <label for="f-note">Commentaire ou autre piste
+        <textarea id="f-note" maxlength="600" placeholder="Ce qui te fait rire, ce qui te gêne, un personnage auquel tu penses…"></textarea>
+      </label>
+      <div class="row">
+        <button type="submit" class="btn" id="f-send">ENVOYER MON AVIS</button>
+        <span class="status" id="f-status" role="status"></span>
+      </div>
+    </form>
+  </section>
+
+  <section class="results" aria-labelledby="t-res">
+    <h2 id="t-res">Ce qu'en pense l'équipe</h2>
+    <p class="lead" id="res-lead">Les résultats s'affichent une fois ton avis envoyé, pour ne pas influencer ton choix.</p>
+    <div id="res"></div>
+  </section>
+</main>
+
+<script>
+const CANDS = [
+  { id:"diable", sym:"m-diable", kind:"Animal · clin d'œil Tasmane", title:"Le diable de Tasmanie",
+    names:["Tazou","Diablo","Mane"],
+    line:"Grrr. Douze joueurs et personne sur la D. Je note.",
+    trick:"Fronce un sourcil avant chaque vanne. Part en tourbillon quand quelqu'un prend la tête.",
+    why:"Le lien avec « Taz » et Tasmane est immédiat. Un petit grognon au grand cœur colle bien au pince-sans-rire.",
+    warn:"Le Taz des Looney Tunes est tout proche : il faut un look bien à nous. Le pelage sombre se voit moins sur le thème foncé.",
+    tasmane:"fort", client:"à voir" },
+  { id:"borne", sym:"m-borne", kind:"Objet · arcade", title:"La borne d'arcade",
+    names:["Jeton","Tilt","Crédit"],
+    line:"INSERT COIN. Ah non, c'est gratuit. Profitez-en.",
+    trick:"Son visage est son écran : les expressions s'affichent en pixels, avec des bugs quand elle rit.",
+    why:"Elle incarne l'ambiance arcade old school. Le visage en pixels relie la typo pixel du jeu au personnage 3D.",
+    warn:"Un objet attendrit moins qu'un animal. Le visage pixel est petit à lire de loin.",
+    tasmane:"léger", client:"oui" },
+  { id:"buzzer", sym:"m-buzzer", kind:"Objet · quiz", title:"Le buzzer",
+    names:["Bip","Pouet","Bzzt"],
+    line:"Appuyez sur moi. Non, pas vous. Sur votre téléphone.",
+    trick:"S'écrase sur lui-même en faisant BZZZT quand il rit, ou quand le chrono tombe à zéro.",
+    why:"Tout le monde reconnaît l'objet du quiz. Son rouge est celui de Tasmane, et il reste neutre chez un client.",
+    warn:"Un dôme rouge peut évoquer un bouton d'urgence. Son visage peut sembler plus figé.",
+    tasmane:"léger", client:"oui" },
+  { id:"cameleon", sym:"m-cameleon", kind:"Animal · lié au jeu", title:"Le caméléon",
+    names:["Kaméo","Léon","Iris"],
+    line:"Je vire au rouge. Comme les 80 % qui ont choisi A.",
+    trick:"Prend la couleur de la réponse la plus votée et roule chaque œil dans une direction différente.",
+    why:"Son pouvoir sert directement le jeu : il commente la répartition des réponses avec son corps.",
+    warn:"Ses changements de couleur ne doivent jamais brouiller les couleurs des réponses A à D.",
+    tasmane:"léger", client:"oui" },
+  { id:"capy", sym:"m-capy", kind:"Animal · flegme", title:"Le capybara",
+    names:["Gégé","Capi","Momo"],
+    line:"Je ne juge pas. Je regarde juste très fort.",
+    trick:"Ne bouge pas d'un poil et cligne lentement des yeux. La mandarine sur sa tête tombe à chaque bonne réponse.",
+    why:"C'est le pince-sans-rire incarné : son calme rend chaque vanne plus drôle. Il est très attachant.",
+    warn:"Un animal à la mode peut vieillir vite. Il a moins d'énergie arcade que les autres.",
+    tasmane:"aucun", client:"oui" },
+  { id:"question", sym:"m-question", kind:"Symbole · quiz", title:"Le point d'interrogation",
+    names:["Kézako","Hein","Quiz"],
+    line:"Ne me regardez pas comme ça. Je suis la question, pas la réponse.",
+    trick:"Se redresse en point d'exclamation à la révélation et rebondit sur son point comme sur un ballon.",
+    why:"C'est le symbole même du quiz, simple à décliner en icône, en favicon ou en chargement.",
+    warn:"Une forme sans corps exprime moins d'émotions. Il risque de faire « logo » plus que « personnage ».",
+    tasmane:"aucun", client:"oui" }
+];
+const byId = Object.fromEntries(CANDS.map(c => [c.id, c]));
+
+const grid = document.getElementById("grid");
+CANDS.forEach((c, i) => {
+  const art = document.createElement("article");
+  art.className = "card"; art.id = "card-" + c.id;
+  art.innerHTML = `
+    <div class="stage">
+      <span class="num">${i + 1}</span>
+      <div class="bubble"><i>${c.names[0].toUpperCase()}</i>${c.line}</div>
+      <svg class="mascot" viewBox="0 0 200 220" role="img" aria-label="${c.title}"><use href="#${c.sym}"/></svg>
+      <div class="podium"><span>TAZQUIZ LIVE</span></div>
+    </div>
+    <div class="body">
+      <div><div class="kind">${c.kind}</div><h3>${c.title}</h3></div>
+      <div class="names" aria-label="Idées de nom">${c.names.map(n => `<span>${n}</span>`).join("")}</div>
+      <dl class="facts">
+        <div><dt>Son truc</dt><dd>${c.trick}</dd></div>
+        <div><dt>Pourquoi ça marche</dt><dd>${c.why}</dd></div>
+        <div class="warn"><dt>À surveiller</dt><dd>${c.warn}</dd></div>
+      </dl>
+      <div class="tags"><span>Lien Tasmane : <b>${c.tasmane}</b></span><span>Chez un client : <b>${c.client}</b></span></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="pick fav" id="fav-${c.id}" data-id="${c.id}" aria-pressed="false">Coup de cœur <span class="cnt" hidden></span></button>
+      <button type="button" class="pick veto" id="veto-${c.id}" data-id="${c.id}" aria-pressed="false">À écarter <span class="cnt" hidden></span></button>
+    </div>`;
+  grid.appendChild(art);
+});
+
+/* bascule du thème de scène */
+const stageTheme = t => {
+  document.body.classList.toggle("stage-light", t === "light");
+  document.getElementById("th-dark").setAttribute("aria-pressed", t !== "light");
+  document.getElementById("th-light").setAttribute("aria-pressed", t === "light");
+  try { localStorage.setItem("tq-stage", t); } catch (e) {}
+};
+document.getElementById("th-dark").onclick = () => stageTheme("dark");
+document.getElementById("th-light").onclick = () => stageTheme("light");
+try { if (localStorage.getItem("tq-stage") === "light") stageTheme("light"); } catch (e) {}
+
+/* brouillon de l'avis */
+const draft = { fav:null, veto:new Set() };
+let votes = {}, myId = null, isOwner = false, db = null, userCap = null, sent = false, dirty = false;
+const $ = id => document.getElementById(id);
+
+function renderPicks(){
+  CANDS.forEach(c => {
+    $("fav-" + c.id).setAttribute("aria-pressed", draft.fav === c.id);
+    $("veto-" + c.id).setAttribute("aria-pressed", draft.veto.has(c.id));
+    $("card-" + c.id).classList.toggle("is-fav", draft.fav === c.id);
+    $("card-" + c.id).classList.toggle("is-veto", draft.veto.has(c.id));
+  });
+  const s = $("summary");
+  const fav = draft.fav ? byId[draft.fav].title : "pas encore choisi";
+  const veto = draft.veto.size ? [...draft.veto].map(id => byId[id].title).join(", ") : "aucune";
+  s.innerHTML = "";
+  [["Coup de cœur", fav], ["Écartées", veto]].forEach(([k, v]) => {
+    const p = document.createElement("p"); const b = document.createElement("b");
+    b.textContent = k + " : "; p.append(b, document.createTextNode(v)); s.appendChild(p);
+  });
+}
+grid.addEventListener("click", e => {
+  const btn = e.target.closest(".pick"); if (!btn || btn.disabled) return;
+  const id = btn.dataset.id;
+  if (btn.classList.contains("fav")) { draft.fav = draft.fav === id ? null : id; draft.veto.delete(id); }
+  else { draft.veto.has(id) ? draft.veto.delete(id) : draft.veto.add(id); if (draft.fav === id) draft.fav = null; }
+  dirty = true; status(sent ? "Modifications non envoyées." : "", ""); renderPicks();
+});
+["f-name","f-note"].forEach(id => $(id).addEventListener("input", () => { dirty = true; }));
+function status(msg, cls){ const el = $("f-status"); el.textContent = msg; el.className = "status" + (cls ? " " + cls : ""); }
+
+/* résultats */
+async function renderResults(){
+  const entries = Object.entries(votes);
+  const show = sent || isOwner;
+  CANDS.forEach(c => {
+    const nf = entries.filter(([, v]) => v.fav === c.id).length;
+    const nv = entries.filter(([, v]) => (v.veto || []).includes(c.id)).length;
+    const f = $("fav-" + c.id).querySelector(".cnt"), v = $("veto-" + c.id).querySelector(".cnt");
+    f.textContent = nf; v.textContent = nv; f.hidden = !show || !nf; v.hidden = !show || !nv;
+  });
+  const res = $("res");
+  if (!show) { res.innerHTML = ""; return; }
+  $("res-lead").textContent = entries.length
+    ? entries.length + (entries.length > 1 ? " avis reçus." : " avis reçu.")
+    : "Aucun avis pour l'instant.";
+  res.innerHTML = "";
+  if (!entries.length) { const e = document.createElement("p"); e.className = "empty"; e.textContent = "Partage le lien de cette page à l'équipe projet : chaque avis apparaîtra ici en direct."; res.appendChild(e); return; }
+  const max = Math.max(1, ...CANDS.map(c => entries.filter(([, v]) => v.fav === c.id).length));
+  const board = document.createElement("div"); board.className = "board";
+  CANDS.map(c => ({ c, nf: entries.filter(([, v]) => v.fav === c.id).length, nv: entries.filter(([, v]) => (v.veto || []).includes(c.id)).length }))
+    .sort((a, b) => b.nf - a.nf || a.nv - b.nv)
+    .forEach(({ c, nf, nv }) => {
+      const row = document.createElement("div"); row.className = "score";
+      const name = document.createElement("span"); name.textContent = c.title;
+      const bar = document.createElement("div"); bar.className = "bar"; const i = document.createElement("i"); i.style.width = (nf / max * 100) + "%"; bar.appendChild(i);
+      const n = document.createElement("span"); n.className = "n"; n.textContent = "♥ " + nf; const em = document.createElement("em"); em.textContent = "✕ " + nv; n.appendChild(em);
+      row.append(name, bar, n); board.appendChild(row);
+    });
+  res.appendChild(board);
+  const ps = userCap ? await userCap.profiles(entries.map(([id]) => id)) : {};
+  const voices = document.createElement("div"); voices.className = "voices";
+  entries.sort((a, b) => (b[1].at || "").localeCompare(a[1].at || "")).forEach(([id, v]) => {
+    const card = document.createElement("div"); card.className = "voice";
+    const who = document.createElement("div"); who.className = "who";
+    who.textContent = (ps[id] && ps[id].name) || (id === myId ? "Toi" : "Un membre de l'équipe");
+    const meta = document.createElement("div"); meta.className = "meta";
+    meta.textContent = "♥ " + (v.fav ? byId[v.fav]?.title || "?" : "aucun") + ((v.veto || []).length ? " · ✕ " + v.veto.map(x => byId[x]?.title || "?").join(", ") : "");
+    card.append(who, meta);
+    if (v.name) { const p = document.createElement("p"); const b = document.createElement("b"); b.textContent = "Nom : "; p.append(b, document.createTextNode(v.name)); card.appendChild(p); }
+    if (v.note) { const p = document.createElement("p"); p.textContent = v.note; card.appendChild(p); }
+    voices.appendChild(card);
+  });
+  res.appendChild(voices);
+}
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!db || !myId) { status("L'enregistrement n'est pas disponible ici. Envoie ton choix à Paul directement.", "err"); return; }
+  if (!draft.fav && !draft.veto.size && !$("f-name").value.trim() && !$("f-note").value.trim()) { status("Choisis au moins un coup de cœur ou écris un mot.", "err"); return; }
+  $("f-send").disabled = true; status("Envoi…", "");
+  try {
+    await db.doc("votes/" + myId).set({ fav: draft.fav, veto: [...draft.veto], name: $("f-name").value.trim().slice(0, 40), note: $("f-note").value.trim().slice(0, 600), at: new Date().toISOString() });
+    sent = true; dirty = false; status("Avis envoyé. Tu peux le modifier quand tu veux.", "ok");
+    $("f-send").textContent = "METTRE À JOUR MON AVIS";
+  } catch (err) {
+    status(err && err.code === "invalid_argument" ? "Tu n'as pas les droits pour donner ton avis sur cette page. Demande à Paul un accès Contributeur." : "L'envoi a échoué. Réessaie dans un instant.", "err");
+  } finally { $("f-send").disabled = false; renderResults(); }
+});
+
+renderPicks();
+
+(async () => {
+  if (!window.claude || !window.claude.use) { status("Mode lecture : l'avis ne peut pas être enregistré ici.", ""); return; }
+  [db, userCap] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+  if (userCap) { myId = await userCap.id(); isOwner = await userCap.isOwner(); }
+  if (!db || !myId) { status("Connecte-toi à claude.ai pour donner ton avis.", ""); $("f-send").disabled = true; renderResults(); return; }
+  const mine = await db.doc("votes/" + myId).get().catch(() => null);
+  if (mine && mine.exists) {
+    const v = mine.data(); sent = true;
+    draft.fav = v.fav || null; draft.veto = new Set(v.veto || []);
+    $("f-name").value = v.name || ""; $("f-note").value = v.note || "";
+    $("f-send").textContent = "METTRE À JOUR MON AVIS"; renderPicks();
+  }
+  db.collection("votes").onSnapshot(snap => {
+    votes = {}; snap.docs.forEach(d => { if (d.exists) votes[d.id] = d.data(); });
+    renderResults();
+  }, () => {});
+  renderResults();
+})();
+</script>
