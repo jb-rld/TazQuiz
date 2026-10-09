@@ -14,19 +14,18 @@ sources:
 
 > **Contrat de référence.** Cette spec et les fichiers listés dans `companions:` forment le contrat complet de ce qu'il faut construire, tester et valider. Les termes du domaine sont définis dans `lexique.md`. Les sources listées dans `sources:` ne servent qu'à la traçabilité.
 
-# TazQuiz : V1 (inauguration du 2 novembre 2026)
+# TazQuiz : V1 (inauguration interne)
 
 ## Why
 
-TazQuiz porte une vision et une échéance. Tasmane anime des moments collectifs, en interne (formations, SummerSchool, onboarding, séminaires) comme chez ses clients (ateliers, formations, CODIR, restitutions), avec Kahoot, un outil qu'elle ne possède pas. TazQuiz le remplace par un outil maison et souverain, qui permet de lancer en quelques minutes un quiz ou un vote en direct, auquel les participants répondent depuis leur téléphone.
+TazQuiz porte une vision. Tasmane anime des moments collectifs, en interne (formations, SummerSchool, onboarding, séminaires) comme chez ses clients (ateliers, formations, CODIR, restitutions), avec Kahoot, un outil qu'elle ne possède pas. TazQuiz le remplace par un outil maison et souverain, qui permet de lancer en quelques minutes un quiz ou un vote en direct, auquel les participants répondent depuis leur téléphone.
 
 Il doit être assez robuste pour être utilisé devant un client, y compris en hybride. C'est aussi une vitrine du savoir-faire sur mesure de Tasmane et le premier projet d'une montée en compétence sur le développement assisté par l'IA. La valeur se joue sur l'expérience : l'esprit de compétition doit se sentir et une partie ne doit jamais planter.
 
-Pour arbitrer, appliquer ces trois règles, dans cet ordre :
+Pour arbitrer, appliquer ces deux règles, dans cet ordre :
 
-1. La date du 2 novembre 2026 est ferme.
-2. Un outil qui fonctionne passe avant l'apprentissage.
-3. Ce qui fait vivre la compétition passe avant le reste de l'interface.
+1. Un outil qui fonctionne passe avant le calendrier et avant l'apprentissage.
+2. Ce qui fait vivre la compétition passe avant le reste de l'interface.
 
 ## Capabilities
 
@@ -131,8 +130,8 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
 - **Hybride :** les joueurs à distance suivent le grand écran via le partage d'écran Teams. Tout ce qui doit être vu ou entendu passe par le grand écran. Le décalage du partage Teams est toléré, sans compensation.
 - **Formats d'écran :** le grand écran est en 16:9 ; les joueurs utilisent un téléphone (navigateur mobile).
 - **Comportements techniques :** les règles de `regles-techniques.md` (temps mesuré par le serveur, réponse comptée une seule fois, copie figée du quiz, session pilote unique, etc.) s'imposent à l'architecture.
-- **Échéance :** l'inauguration du 2026-11-02 est ferme et toute la V1 y est livrée. En cas de retard constaté à une revue de décision, on applique l'ordre de sacrifice de `jalons-et-risques.md`. La question de classement (CAP-12) et la mascotte (CAP-22) ne peuvent pas être sacrifiées.
-- **Équipe :** 2 personnes, dont un profil non technique, en développement assisté par l'IA. La stack, que l'architecture choisira sans préférence imposée, doit rester compréhensible et maintenable par cette équipe et s'héberger sur OVH.
+- **Calendrier :** les dates sont indicatives (inauguration visée le 2026-11-02). L'inauguration a lieu quand toutes les étapes de validation de `jalons-et-risques.md` sont passées, avec toute la V1.
+- **Équipe :** 2 personnes, dont un profil non technique, en développement assisté par l'IA ; la production démarre dès que les specs sont terminées. La stack, que l'architecture choisira sans préférence imposée, doit rester compréhensible et maintenable par cette équipe et s'héberger sur OVH.
 
 ## Non-goals
 
@@ -146,7 +145,7 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
 
 ## Success signal
 
-- Le 2026-11-02, une partie interne avec environ 40 collègues sur place et à distance va au bout sans recourir à Kahoot. Le journal serveur ne montre aucun joueur resté déconnecté sans retour, et un vote de fin de partie (« ça a marché pour vous ? ») le confirme.
+- Lors de l'inauguration (visée le 2026-11-02), une partie interne avec environ 40 collègues sur place et à distance va au bout sans recourir à Kahoot. Le journal serveur ne montre aucun joueur resté déconnecté sans retour, et un vote de fin de partie (« ça a marché pour vous ? ») le confirme.
 - Les deux tests de charge à 50 joueurs passent selon le protocole de `jalons-et-risques.md`.
 
 ## Assumptions
@@ -164,4 +163,4 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
 - Choix multiple : tout ou rien (hypothèse retenue, voir Assumptions), ou des points partiels ?
 - Offre OVH standard ou SecNumCloud ?
 - Tasmane est-elle sous-traitante du client au sens du RGPD ? Combien de temps garde-t-on les résultats nominatifs (pseudos, réponses, scores) ? À trancher avant la purge de la V2.
-- Quel est le nom exact du sous-domaine ? À trancher avant le jalon du 2026-10-16.
+- Quel est le nom exact du sous-domaine ? À trancher avant l'étape 1 de `jalons-et-risques.md`.

@@ -13,7 +13,7 @@ TazQuiz est l'application de quiz et de vote en direct de Tasmane, dans l'esprit
 
 Plus qu'une économie de licence, c'est un outil souverain qui appartient à Tasmane, une vitrine de son savoir-faire sur mesure et un premier projet de montée en compétence sur le développement assisté par l'IA. Sa valeur se joue sur l'expérience : un classement animé qui fait vivre la compétition, et une partie qui ne plante jamais, même devant un client.
 
-Première utilisation réelle : un quiz interne avec ~40 collègues le **lundi 2 novembre 2026**.
+Première utilisation réelle : un quiz interne avec environ 40 collègues, visé pour le **lundi 2 novembre 2026** (date indicative).
 
 ## Pourquoi TazQuiz
 
@@ -55,9 +55,9 @@ TazQuiz ne revendique aucune fonctionnalité que Kahoot n'aurait pas : sa diffé
 
 ## Périmètre
 
-### V1 : l'inauguration du 2 novembre 2026
+### V1 : l'inauguration interne
 
-Objectif : jouer en interne une partie complète et réussie avec ~40 collègues, sur place et à distance, avec un outil déjà prêt pour un usage client. Tout ce qui suit est livré pour le 2 novembre.
+Objectif : jouer en interne une partie complète et réussie avec ~40 collègues, sur place et à distance, avec un outil déjà prêt pour un usage client. L'inauguration a lieu quand tout ce qui suit fonctionne et a passé les étapes de validation.
 
 - **Formats de questions :** choix simple (2 à 4 réponses, Vrai/Faux préconfiguré), choix multiple (2 à 6 réponses, nombre de bonnes réponses affichable) et **classement** (3 à 6 éléments à ordonner). Chaque question peut avoir une image et son propre temps limite.
 - **Quiz ou vote :** chaque question est scorée ou non. Une question non scorée affiche la répartition des réponses, ou le rang moyen de chaque élément pour un classement (priorisation collective).
@@ -71,19 +71,6 @@ Objectif : jouer en interne une partie complète et réussie avec ~40 collègues
 - **Mascotte présentatrice** sur le grand écran, avec une banque de répliques écrites et trois niveaux.
 - **Après la partie :** export Excel détaillé des résultats.
 - **Habillage :** charte Tasmane, direction visuelle « arcade » en thème clair ou foncé, et un choix basique de fond d'écran ; les téléphones suivent le thème.
-
-**Si on est en retard**, constaté lors des revues des 16 et 23 octobre par JBR et Paul, on retire dans cet ordre :
-1. les aperçus de l'éditeur ;
-2. l'export Excel ;
-3. la duplication de quiz ;
-4. la page de test de connectivité ;
-5. la journalisation des accès ;
-6. les images dans les questions ;
-7. le partage entre collègues ;
-8. le QR code (on garde le PIN seul) ;
-9. le bonus de série.
-
-Le format classement, la mascotte et la date sont intouchables.
 
 ### V2 : engagement et prêt client
 
@@ -114,7 +101,7 @@ Le format classement, la mascotte et la date sont intouchables.
 
 ## Critères de succès
 
-**Pour l'inauguration du 2 novembre**
+**Pour l'inauguration**
 - La partie va au bout sans qu'on ait besoin de Kahoot.
 - Aucun joueur ne reste bloqué ou déconnecté sans pouvoir revenir.
 - Rejoindre la partie prend moins de 30 secondes entre le scan du QR code et l'arrivée dans la salle d'attente.
@@ -130,22 +117,21 @@ Le format classement, la mascotte et la date sont intouchables.
 
 ## Jalons et risques
 
-| Date | Jalon |
-|---|---|
-| au plus tôt | Une page vide déployée chez OVH, sur le sous-domaine Tasmane |
-| avant le 16 oct. 2026 | Prototype temps réel et test de charge simulant 50 joueurs, avant de construire le reste |
-| ven. 16 oct. 2026 | Revue de décision : prototype validé ? |
-| ven. 23 oct. 2026 | Revue de décision : le cœur de la V1, le classement et la mascotte fonctionnent ? |
-| lun. 26 oct. 2026 | Mini-partie test à midi, 3 à 4 personnes |
-| avant le 30 oct. 2026 | Nouveau test de charge de 50 joueurs, sur la V1 complète |
-| jeu. 29 oct. 2026 | Gel du code |
-| ven. 30 oct. 2026 | Répétition générale avec 5 à 10 collègues, dont au moins un téléphone en 4G ; quiz Kahoot de secours prêt |
-| lun. 2 nov. 2026 | Inauguration : quiz interne, ~40 participants |
+Les dates sont indicatives : chaque étape doit être réussie avant la suivante, et c'est la qualité qui déclenche l'inauguration, pas le calendrier.
 
-- **Le temps réel avec 40 à 50 joueurs** est le principal risque technique. Une répétition à 10 personnes ne le valide pas : il faut un test de charge dès le 16 octobre, avant de construire le reste, puis un second sur la V1 complète avant le 30 octobre.
+| Date indicative | Étape |
+|---|---|
+| dès que possible | Une page vide déployée chez OVH, sur le sous-domaine Tasmane |
+| 16 oct. 2026 | Prototype temps réel et test de charge simulant 50 joueurs, avant de construire le reste |
+| 26 oct. 2026 | Mini-partie test à midi, 3 à 4 personnes |
+| avant la répétition | Nouveau test de charge de 50 joueurs, sur la V1 complète, puis gel du code |
+| 30 oct. 2026 | Répétition générale avec 5 à 10 collègues, dont au moins un téléphone en 4G ; quiz Kahoot de secours prêt |
+| 2 nov. 2026 | Inauguration : quiz interne, environ 40 participants |
+
+- **Le temps réel avec 40 à 50 joueurs** est le principal risque technique. Une répétition à 10 personnes ne le valide pas : il faut un test de charge dès le prototype, avant de construire le reste, puis un second sur la V1 complète avant la répétition générale.
 - **Le réseau chez les clients** (wifi invité, pare-feu) n'est plus un risque qu'on accepte : le repli réseau et la page de test le couvrent, avec un test en 4G à chaque répétition.
 - **L'infrastructure OVH** est un premier chantier pour une équipe qui débute : on la met en place dès le départ.
-- **Le délai** : 25 jours pour une V1 élargie, avec une équipe qui apprend. Le risque est accepté. On applique l'ordre de sacrifice si besoin, et Kahoot reste prêt le 2 novembre pour que la séance ait lieu quoi qu'il arrive.
+- **Le calendrier** : la production démarre dès que les specs sont terminées. Si une étape de validation échoue, on corrige et l'inauguration glisse. Un quiz Kahoot de secours reste prêt pour que la séance ait lieu quoi qu'il arrive.
 - **La propriété intellectuelle** : une mascotte en diable de Tasmanie et le nom TazQuiz rappellent le Taz des Looney Tunes (Warner Bros.). La mascotte retenue doit en être nettement distincte, et le nom vérifié avant le premier usage client.
 
 ## Questions ouvertes

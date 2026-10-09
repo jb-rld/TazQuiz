@@ -7,4 +7,4 @@
 - **Vote** : question non scorée (CAP-13).
 - **Série** : suite de bonnes réponses consécutives d'un joueur. **Boost** : sa mise en avant à l'écran.
 - **Compte Tasmane** : compte Microsoft 365 membre du tenant Tasmane, authentifié par Entra ID.
-- **Revue de décision** : point daté où JBR et Paul décident d'appliquer ou non l'ordre de sacrifice (`jalons-et-risques.md`).
+- **Étape de validation** : test à passer avant l'étape suivante et avant l'inauguration (`jalons-et-risques.md`). Les dates associées sont indicatives.
