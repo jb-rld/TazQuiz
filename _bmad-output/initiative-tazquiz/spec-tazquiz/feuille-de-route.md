@@ -1,6 +1,6 @@
 # Feuille de route après la V1
 
-Hors du contrat de build actuel. Ce document sert à ne pas fermer de portes dans les choix de la V1.
+Hors du contrat de la V1. Ce document sert à ne pas fermer de portes dans les choix de la V1.
 
 ## V2 : engagement, prêt client
 
@@ -14,6 +14,8 @@ Hors du contrat de build actuel. Ce document sert à ne pas fermer de portes dan
 | Purge des résultats nominatifs après X jours, conservation des agrégats | — | Durée X à fixer (question ouverte de la spec) |
 | Cohérence avec le Plan d'Assurance Sécurité Tasmane, réponse aux questionnaires sécurité client | — | Avant le premier usage devant un client |
 | Génération de questions par IA | — | — |
+| Répliques de la mascotte générées par IA en direct | — | Repli automatique sur la banque de répliques écrites en cas de panne ou de lenteur |
+| Vannes personnelles de la mascotte sur les téléphones | — | Après une erreur, sur la lenteur, sur le rival juste devant |
 | Tenue de charge jusqu'à 200 joueurs | — | Cible produit |
 
 ## V3 : formats avancés

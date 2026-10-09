@@ -46,9 +46,10 @@ Tasmane anime aujourd'hui ses quiz collectifs avec Kahoot. Ça fonctionne, mais 
 Ce qui fait le succès de Kahoot, c'est la compétition. TazQuiz doit soigner en priorité les moments qui la font vivre :
 
 - **La salle d'attente** : les pseudos des joueurs apparaissent en direct sur le grand écran au fur et à mesure qu'ils rejoignent. La partie commence avant même la première question.
-- **Le classement après chaque question** : c'est le moment fort. On doit *voir* les joueurs se dépasser, avec une animation, et pas seulement lire un nouveau tableau.
+- **Le classement après chaque question** : c'est le moment fort. Après la répartition des réponses, le top 5 s'affiche et on doit *voir* les joueurs se dépasser, avec une animation, et pas seulement lire un nouveau tableau. Sur son téléphone, chacun voit le joueur juste devant lui et l'écart à combler.
 - **Les séries** : un joueur qui enchaîne les bonnes réponses est mis en avant (« en boost ») sur le grand écran et sur son téléphone.
-- **Les bruitages** : ils rythment le compte à rebours, les réponses et le podium. En hybride, le son doit passer aussi dans le partage Teams.
+- **La mascotte présentatrice** : un personnage pince-sans-rire commente la partie sur le grand écran, de la salle d'attente au podium, avec trois niveaux de mordant choisis par l'animateur.
+- **Les bruitages** : une musique d'attente, puis des sons qui rythment le compte à rebours, les réponses et le podium, révélé lentement. En hybride, le son doit passer aussi dans le partage Teams.
 
 TazQuiz ne revendique aucune fonctionnalité que Kahoot n'aurait pas : sa différence tient à ce qu'il appartient à Tasmane et s'adapte à chaque contexte.
 
@@ -62,15 +63,16 @@ Objectif : jouer en interne une partie complète et réussie avec ~40 collègues
 - **Quiz ou vote :** chaque question est scorée ou non. Une question non scorée affiche la répartition des réponses, ou le rang moyen de chaque élément pour un classement (priorisation collective).
 - **Éditeur :** bibliothèque personnelle, duplication, aperçu « écran projeté » et « vue téléphone ».
 - **Accès et partage :** connexion avec le compte Microsoft Tasmane ; quiz privés par défaut, partageables avec des collègues ou rendus publics ; accès des animateurs journalisés.
-- **Rejoindre une partie :** code PIN ou QR code, avec un simple pseudo et une mention RGPD ; les pseudos apparaissent en direct dans la salle d'attente du grand écran.
-- **Partie en direct :** 50 joueurs simultanés, sur place, à distance et en hybride ; l'animateur lance chaque question d'un clic ; affichage complet sur le téléphone et retour immédiat après chaque question.
-- **Robustesse :** fonctionne sur les réseaux filtrés (HTTPS sur le port 443, repli si le WebSocket est bloqué) ; page de test de connectivité ; un joueur déconnecté revient sans perdre son score ni sa série ; l'animateur reprend la partie s'il ferme sa page.
-- **Scores :** barème Kahoot, soit de 500 à 1 000 points selon la vitesse, plus un bonus de série. Pour un classement, les points dépendent du nombre d'éléments bien placés.
-- **Classement :** affiché après chaque question, puis podium final.
+- **Rejoindre une partie :** code PIN ou QR code, avec un simple pseudo (unique, de longueur limitée, filtré contre les gros mots) et une mention RGPD ; les pseudos apparaissent en direct dans la salle d'attente du grand écran ; un retardataire entre avec 0 point à la question suivante ; jusqu'à 200 joueurs par partie.
+- **Partie en direct :** 50 joueurs simultanés garantis, sur place, à distance et en hybride ; l'animateur pilote depuis le grand écran et lance chaque question d'un clic ; la réponse est révélée dès que tout le monde a répondu ; affichage complet sur le téléphone et retour immédiat après chaque question.
+- **Robustesse :** fonctionne sur les réseaux filtrés (HTTPS sur le port 443, repli si le WebSocket est bloqué) ; page de test de connectivité ; un joueur déconnecté revient sans perdre son score ni sa série ; l'animateur, ou un collègue avec qui le quiz est partagé, reprend la partie depuis n'importe quel poste.
+- **Scores :** barème Kahoot, soit de 500 à 1 000 points selon la vitesse, plus un bonus de série croissant (jusqu'à +500). Pour un classement, les points dépendent du nombre de paires d'éléments dans le bon ordre. Les ex æquo partagent leur rang.
+- **Classement :** top 5 affiché après chaque question scorée, puis podium final.
+- **Mascotte présentatrice** sur le grand écran, avec une banque de répliques écrites et trois niveaux.
 - **Après la partie :** export Excel détaillé des résultats.
-- **Habillage :** charte Tasmane et un choix basique de fond d'écran.
+- **Habillage :** charte Tasmane, direction visuelle « arcade » en thème clair ou foncé, et un choix basique de fond d'écran ; les téléphones suivent le thème.
 
-**Si on est en retard**, on retire dans cet ordre :
+**Si on est en retard**, constaté lors des revues des 16 et 23 octobre par JBR et Paul, on retire dans cet ordre :
 1. les aperçus de l'éditeur ;
 2. l'export Excel ;
 3. la duplication de quiz ;
@@ -81,7 +83,7 @@ Objectif : jouer en interne une partie complète et réussie avec ~40 collègues
 8. le QR code (on garde le PIN seul) ;
 9. le bonus de série.
 
-Le format classement et la date sont intouchables.
+Le format classement, la mascotte et la date sont intouchables.
 
 ### V2 : engagement et prêt client
 
@@ -93,6 +95,7 @@ Le format classement et la date sont intouchables.
 - purge des résultats nominatifs après une durée à fixer, avec conservation des agrégats ;
 - cohérence avec le Plan d'Assurance Sécurité et réponse aux questionnaires sécurité des clients ;
 - génération de questions par IA ;
+- répliques de la mascotte générées par IA en direct, et vannes personnelles sur les téléphones ;
 - tenue de charge jusqu'à 200 joueurs.
 
 ### V3 : les formats avancés
@@ -105,6 +108,7 @@ Le format classement et la date sont intouchables.
 - un service en libre-service pour les clients, ou une vente de l'outil (un client intéressé se voit proposer un outil construit pour lui) ;
 - la coédition en direct d'un quiz ;
 - une compensation du décalage pour les joueurs à distance ;
+- l'exclusion d'un joueur par l'animateur ;
 - les espaces par mission ou par client ;
 - le mode asynchrone, le jeu en équipes et l'import de quiz Kahoot.
 
@@ -130,15 +134,19 @@ Le format classement et la date sont intouchables.
 |---|---|
 | au plus tôt | Une page vide déployée chez OVH, sur le sous-domaine Tasmane |
 | avant le 16 oct. 2026 | Prototype temps réel et test de charge simulant 50 joueurs, avant de construire le reste |
+| ven. 16 oct. 2026 | Revue de décision : prototype validé ? |
+| ven. 23 oct. 2026 | Revue de décision : le cœur de la V1, le classement et la mascotte fonctionnent ? |
 | lun. 26 oct. 2026 | Mini-partie test à midi, 3 à 4 personnes |
 | avant le 30 oct. 2026 | Nouveau test de charge de 50 joueurs, sur la V1 complète |
-| ven. 30 oct. 2026 | Répétition générale avec 5 à 10 collègues, dont au moins un téléphone en 4G |
+| jeu. 29 oct. 2026 | Gel du code |
+| ven. 30 oct. 2026 | Répétition générale avec 5 à 10 collègues, dont au moins un téléphone en 4G ; quiz Kahoot de secours prêt |
 | lun. 2 nov. 2026 | Inauguration : quiz interne, ~40 participants |
 
 - **Le temps réel avec 40 à 50 joueurs** est le principal risque technique. Une répétition à 10 personnes ne le valide pas : il faut un test de charge dès le 16 octobre, avant de construire le reste, puis un second sur la V1 complète avant le 30 octobre.
 - **Le réseau chez les clients** (wifi invité, pare-feu) n'est plus un risque qu'on accepte : le repli réseau et la page de test le couvrent, avec un test en 4G à chaque répétition.
 - **L'infrastructure OVH** est un premier chantier pour une équipe qui débute : on la met en place dès le départ.
 - **Le délai** : 25 jours pour une V1 élargie, avec une équipe qui apprend. Le risque est accepté. On applique l'ordre de sacrifice si besoin, et Kahoot reste prêt le 2 novembre pour que la séance ait lieu quoi qu'il arrive.
+- **La propriété intellectuelle** : une mascotte en diable de Tasmanie et le nom TazQuiz rappellent le Taz des Looney Tunes (Warner Bros.). La mascotte retenue doit en être nettement distincte, et le nom vérifié avant le premier usage client.
 
 ## Questions ouvertes
 
