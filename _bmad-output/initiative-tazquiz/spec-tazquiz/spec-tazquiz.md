@@ -1,7 +1,10 @@
 ---
 id: SPEC-tazquiz
 companions:
+  - lexique.md
+  - formats-de-question.md
   - bareme.md
+  - regles-techniques.md
   - jalons-et-risques.md
   - feuille-de-route.md
   - ../ux-tazquiz/ux-tazquiz.md
@@ -9,7 +12,7 @@ sources:
   - ../brief-tazquiz/brief-tazquiz.md
 ---
 
-> **Contrat de référence.** Cette spec et les fichiers listés dans `companions:` forment le contrat complet de ce qu'il faut construire, tester et valider. Les sources listées dans `sources:` ne servent qu'à la traçabilité.
+> **Contrat de référence.** Cette spec et les fichiers listés dans `companions:` forment le contrat complet de ce qu'il faut construire, tester et valider. Les termes du domaine sont définis dans `lexique.md`. Les sources listées dans `sources:` ne servent qu'à la traçabilité.
 
 # TazQuiz : V1 (inauguration du 2 novembre 2026)
 
@@ -24,16 +27,6 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
 1. La date du 2 novembre 2026 est ferme.
 2. Un outil qui fonctionne passe avant l'apprentissage.
 3. Ce qui fait vivre la compétition passe avant le reste de l'interface.
-
-## Lexique
-
-- **Animateur** : collaborateur Tasmane qui lance et pilote une partie depuis l'ordinateur branché au projecteur.
-- **Joueur** : participant à une partie, interne ou client, identifié par son seul pseudo.
-- **Grand écran** : l'écran projeté de l'animateur, également partagé dans Teams.
-- **Question de classement** : format où le joueur ordonne des éléments (CAP-12). À ne pas confondre avec le **classement des joueurs**, le tableau des scores (CAP-8).
-- **Vote** : question non scorée (CAP-13).
-- **Série** : suite de bonnes réponses consécutives d'un joueur ; **boost** : sa mise en avant à l'écran.
-- **Compte Tasmane** : compte Microsoft 365 du tenant Tasmane, authentifié par Entra ID.
 
 ## Capabilities
 
@@ -52,14 +45,14 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
 ### Édition et bibliothèque
 
 - **CAP-2**
-  - **intent :** un collaborateur crée et modifie un quiz de questions à choix simple (2 à 4 réponses, Vrai/Faux préconfiguré), à choix multiple (2 à 6 réponses, nombre de bonnes réponses attendues affichable) et de classement (CAP-12). Chaque question a un énoncé, une image facultative, un temps limite propre et peut être scorée ou non (CAP-13). Une question scorée à choix simple a exactement une bonne réponse ; à choix multiple, au moins une.
-  - **success :** un quiz mêlant les trois formats, avec et sans image, des temps limites différents et des questions scorées et non scorées, s'enregistre, se rouvre à l'identique et se joue. L'éditeur refuse un nombre de réponses hors bornes, une question scorée sans bonne réponse et un temps limite absent.
+  - **intent :** un collaborateur crée et modifie un quiz de questions à choix simple, à choix multiple et de classement, selon les règles de `formats-de-question.md`. Chaque question a un énoncé, une image facultative, un temps limite propre et peut être scorée ou non.
+  - **success :** un quiz mêlant les trois formats, avec et sans image, des temps limites différents et des questions scorées et non scorées, s'enregistre, se rouvre à l'identique et se joue. L'éditeur refuse une question hors des bornes de `formats-de-question.md`, une question scorée sans bonne réponse et un temps limite absent.
 - **CAP-12**
-  - **intent :** une question de classement demande d'ordonner 3 à 6 éléments, par glisser-déposer ou par tap séquentiel. L'ordre initial présenté est mélangé et jamais égal au bon ordre.
-  - **success :** sur téléphone, un joueur ordonne 6 éléments par l'une ou l'autre méthode, valide, et son ordre est enregistré tel quel. Scorée, la question est notée selon `bareme.md`.
+  - **intent :** une question de classement demande au joueur d'ordonner 3 à 6 éléments.
+  - **success :** sur téléphone, un joueur ordonne 6 éléments, confirme, et son ordre est enregistré tel quel. L'ordre initial présenté n'est jamais le bon ordre. Scorée, la question est notée selon `bareme.md`.
 - **CAP-13**
-  - **intent :** une question non scorée sert de vote : elle ne rapporte aucun point. Le grand écran montre la répartition des réponses, ou le rang moyen de chaque élément pour une question de classement (priorisation collective), sans le classement des joueurs.
-  - **success :** après un vote, les scores sont inchangés et le grand écran affiche la répartition, ou le rang moyen calculé sur les seuls ordres validés, avec le nombre de votants, puis passe à la suite sans montrer le classement des joueurs. Sans aucune réponse, il affiche « aucune réponse ».
+  - **intent :** une question non scorée sert de vote : elle ne rapporte aucun point, et le grand écran en montre le résultat (répartition des réponses, ou rang moyen pour une question de classement) sans le classement des joueurs.
+  - **success :** après un vote, les scores sont inchangés et le grand écran affiche le résultat prévu par `formats-de-question.md`, avec le nombre de votants, puis passe à la suite sans montrer le classement des joueurs. Sans aucune réponse, il affiche « aucune réponse ».
 - **CAP-18**
   - **intent :** un collaborateur retrouve dans une bibliothèque personnelle les quiz qu'il a créés et ceux partagés avec lui, et peut dupliquer un quiz.
   - **success :** la copie est privée, appartient à celui qui duplique, et n'hérite d'aucun partage. Modifier la copie ne change pas l'original, et inversement.
@@ -73,38 +66,40 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
   - **intent :** l'animateur lance une partie, qui affiche sur le grand écran un code PIN et un QR code pour la rejoindre.
   - **success :** le QR code scanné ouvre directement la saisie du pseudo, et le PIN saisi mène au même endroit. Un PIN erroné ou celui d'une partie terminée donne un message clair.
 - **CAP-5**
-  - **intent :** un joueur rejoint la partie avec un simple pseudo, sans compte, sur un écran qui porte la mention RGPD. Le grand écran affiche en direct les pseudos qui arrivent dans la salle d'attente. Un pseudo est unique dans la partie (suffixe automatique), limité en longueur et filtré contre les gros mots. Un joueur peut rejoindre une partie commencée : il entre avec 0 point et joue à partir de la question suivante. Au-delà de 200 joueurs, la partie affiche « partie complète ».
-  - **success :** sur un téléphone en 4G, il faut moins de 30 s, en médiane, entre le scan du QR code et l'arrivée dans la salle d'attente. Chaque pseudo apparaît sur le grand écran dès que le joueur a rejoint. Deux « Paul » deviennent « Paul » et « Paul 2 ». Un pseudo grossier est refusé. Un retardataire joue dès la question suivante.
+  - **intent :** un joueur rejoint la partie avec un simple pseudo, sans compte, sur un écran qui porte la mention RGPD. Le grand écran affiche en direct les pseudos qui arrivent dans la salle d'attente. Un pseudo est unique dans la partie, limité en longueur et filtré contre les gros mots. Un joueur peut rejoindre une partie commencée : il entre avec 0 point et joue à partir de la question suivante. Au-delà de 200 joueurs, la partie est complète.
+  - **success :** sur un téléphone en 4G, il faut moins de 30 s, en médiane, entre le scan du QR code et l'arrivée dans la salle d'attente. Chaque pseudo apparaît sur le grand écran dès que le joueur a rejoint. Deux joueurs qui choisissent « Paul » apparaissent sous deux pseudos distincts. Un pseudo grossier est refusé. Un retardataire joue dès la question suivante. Le 201ᵉ joueur voit un message « partie complète ».
 - **CAP-6**
-  - **intent :** l'animateur déroule la partie depuis le grand écran, sans écran de pilotage séparé, avec des commandes discrètes et des raccourcis clavier, et voit combien de joueurs ont répondu. Entre deux questions, la partie attend : un clic de l'animateur affiche la question suivante et lance son compte à rebours. La bonne réponse est révélée à la fin du compte à rebours, ou dès que tous les joueurs connectés au lancement de la question ont répondu. Le téléphone de chaque joueur recopie intégralement l'énoncé et les réponses, empilées verticalement, avec le compte à rebours, pour qu'il puisse répondre sans voir le grand écran. Une réponse à choix simple est définitive au premier tap ; une réponse à choix multiple ou de classement exige de valider.
-  - **success :** une partie de bout en bout avec 50 joueurs simultanés affiche chaque question sur le grand écran et sur les téléphones avec un écart d'au plus 1 s (95ᵉ centile), et enregistre toutes les réponses. Aucune question ne démarre sans action de l'animateur. Quand tous ont répondu, la révélation est immédiate ; un joueur déconnecté ne la bloque pas. Une question à 6 réponses longues s'affiche sans troncature sur un téléphone de 360 px de large.
+  - **intent :** l'animateur déroule la partie depuis le grand écran, sans écran de pilotage séparé, avec des commandes qui restent discrètes à la projection, et voit combien de joueurs ont répondu. Entre deux questions, la partie attend : une action de l'animateur affiche la question suivante et lance son compte à rebours.
+  - **success :** une partie de bout en bout avec 50 joueurs simultanés affiche chaque question sur le grand écran et sur les téléphones avec un écart d'au plus 1 s (95ᵉ centile), et enregistre toutes les réponses. Aucune question ne démarre sans action de l'animateur. Le nombre de réponses reçues est visible de l'animateur.
+- **CAP-23**
+  - **intent :** la bonne réponse est révélée à la fin du compte à rebours, ou dès que tous les joueurs connectés au lancement de la question ont répondu.
+  - **success :** quand tous ont répondu, la révélation est immédiate. Un joueur déconnecté pendant la question ne la retarde pas. Sans aucun joueur connecté, la question va jusqu'au bout du chrono.
+- **CAP-24**
+  - **intent :** un joueur répond depuis son seul téléphone, sans avoir besoin du grand écran : il y voit l'énoncé et toutes les réponses en entier, avec le compte à rebours. Sa réponse devient définitive selon les règles de `formats-de-question.md`.
+  - **success :** une question à 6 réponses longues s'affiche sans troncature sur un téléphone de 360 px de large, avec le compte à rebours. À la fin du chrono, un choix multiple ou une question de classement non confirmé compte comme « pas de réponse ».
 - **CAP-14**
   - **intent :** chaque réponse est identifiée par une couleur, une forme et une lettre (A à F), identiques sur le grand écran et sur le téléphone.
   - **success :** sur des questions à 2, 4 et 6 réponses, chaque lettre de A à F a la même couleur et la même forme sur les deux écrans, dans les deux thèmes.
 - **CAP-15**
-  - **intent :** après chaque question, le téléphone du joueur affiche son résultat, ses points gagnés, son score, son rang, ainsi que le pseudo du joueur juste devant lui et l'écart de points qui les sépare. Le résultat dépend du format :
-    - choix simple ou multiple : juste ou faux, et la bonne réponse ;
-    - question de classement : son ordre à côté du bon ordre, éléments bien placés mis en évidence ;
-    - vote : son choix (ou son ordre), sans juste ni faux ;
-    - pas de réponse : « pas de réponse », la bonne réponse et 0 point.
-  - **success :** dans chacun des quatre cas, le téléphone affiche les informations prévues ; le score et le rang correspondent au classement des joueurs. Le premier voit un message de tête à la place de l'écart.
+  - **intent :** après chaque question, le téléphone montre au joueur son résultat selon le format, ses points gagnés, son score, son rang, et le joueur juste devant lui avec l'écart de points à combler.
+  - **success :** pour chaque format, pour un vote et pour une absence de réponse, le téléphone affiche le retour prévu par `formats-de-question.md`. Le score et le rang correspondent au classement des joueurs. Le premier voit un message de tête à la place de l'écart.
 - **CAP-9**
-  - **intent :** une musique d'attente accompagne la salle d'attente, et des bruitages rythment le compte à rebours, la révélation des réponses et le podium. Ils sortent du grand écran, après une action de l'animateur qui active le son.
-  - **success :** chacun de ces sons est audible dans la salle et dans un partage d'écran Teams (avec l'option de partage du son activée). Un indicateur signale à l'animateur si le son est actif.
+  - **intent :** une musique d'attente accompagne la salle d'attente, et des bruitages rythment le compte à rebours, la révélation des réponses et le podium. Ils sortent du grand écran, une fois le son activé par l'animateur.
+  - **success :** chacun de ces sons est audible dans la salle et dans un partage d'écran Teams (avec l'option de partage du son activée). L'animateur voit si le son est actif.
 - **CAP-10**
-  - **intent :** la partie s'affiche à la charte Tasmane, dans un thème clair ou foncé, avec un fond d'écran choisi parmi quelques options. L'animateur choisit thème et fond dans la salle d'attente ; ils sont verrouillés au lancement et les téléphones suivent le thème.
+  - **intent :** la partie s'affiche à la charte Tasmane, dans un thème clair ou foncé, avec un fond d'écran choisi parmi quelques options. L'animateur choisit thème et fond dans la salle d'attente ; ils sont verrouillés au lancement, et les téléphones suivent le thème.
   - **success :** le thème et le fond choisis s'appliquent au grand écran pendant toute la partie, le thème aux téléphones aussi, y compris après une reconnexion, et ne changent plus après le lancement.
 - **CAP-22**
-  - **intent :** une mascotte présentatrice commente la partie sur le grand écran, en bulles de texte, à tous ses moments (salle d'attente, lancement, compte à rebours, révélation, répartition, classement, podium). Ses répliques viennent d'une banque écrite à l'avance et rattachée à des situations. L'animateur choisit son niveau dans la salle d'attente (1 sans blague, 2 quelques blagues, 3 piquante) ; il est verrouillé au lancement. Elle chambre un groupe, jamais une personne ni un pseudo, et ne cache jamais l'énoncé, les réponses ou le chrono.
-  - **success :** pour chaque situation de la banque, la mascotte affiche une réplique du niveau choisi. Au niveau 1, aucune blague. Aucune bulle ne recouvre l'énoncé, les réponses ou le chrono.
+  - **intent :** une mascotte présentatrice commente la partie sur le grand écran, à tous ses moments, avec des répliques écrites à l'avance. L'animateur choisit son niveau de mordant (1, 2 ou 3) dans la salle d'attente ; il est verrouillé au lancement. Elle peut citer un pseudo pour accueillir un joueur ou le mettre en valeur, mais ne se moque jamais d'une personne ni d'un pseudo. Son caractère, ses situations et ses répliques sont définis par l'UX.
+  - **success :** pour chaque situation définie par l'UX, la mascotte affiche une réplique du niveau choisi. Au niveau 1, elle ne fait aucune blague. Elle ne masque jamais l'énoncé, les réponses ni le chrono.
 
 ### Score et classement
 
 - **CAP-7**
   - **intent :** à une question scorée, chaque réponse juste (ou partiellement juste, pour une question de classement) rapporte des points selon la justesse et la vitesse, plus un bonus de série. Un joueur en série est mis en avant (« en boost ») sur le grand écran et sur son téléphone.
-  - **success :** les scores calculés correspondent aux exemples chiffrés de `bareme.md`. Le boost apparaît sur les deux écrans dès la 2ᵉ bonne réponse consécutive, disparaît après une erreur ou un classement partiel, et ne change pas après un vote.
+  - **success :** les scores calculés correspondent aux exemples chiffrés de `bareme.md`. Le boost apparaît sur les deux écrans dès la 2ᵉ bonne réponse consécutive, disparaît quand la série retombe à 0, et ne change pas après un vote.
 - **CAP-8**
-  - **intent :** après chaque question, le grand écran montre la répartition des réponses. Après une question scorée, il montre ensuite le top 5 du classement des joueurs, avec une animation des entrées, sorties et dépassements. Les ex æquo partagent le même rang. La partie se termine sur un podium révélé progressivement, puis chaque téléphone affiche le rang final et la partie se ferme.
+  - **intent :** après chaque question, le grand écran montre la répartition des réponses. Après une question scorée, il montre ensuite le top 5 du classement des joueurs, en animant les entrées, sorties et dépassements. Les ex æquo partagent le même rang. La partie se termine sur un podium révélé progressivement, puis chaque téléphone affiche le rang final et la partie se ferme.
   - **success :** après chaque question scorée, on voit la répartition puis le top 5 ; quand un joueur entre dans le top 5 ou en dépasse un autre, l'animation le montre. Le podium présente les trois premiers rangs, avec tous les ex æquo, et seulement les places occupées s'il y a moins de trois joueurs. Après la fin, le PIN n'est plus valide.
 
 ### Résilience et réseau
@@ -113,7 +108,7 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
   - **intent :** un joueur déconnecté (veille du téléphone, réseau coupé) revient automatiquement dans la partie en cours, sans perdre son score ni sa série. Pendant une question entièrement manquée à cause d'une déconnexion, sa série est gelée.
   - **success :** après avoir coupé le réseau puis l'avoir rétabli, ou rouvert la page, le joueur reprend l'écran en cours sans repasser par la salle d'attente, avec le même score et la même série, sans créer de doublon. Une réponse envoyée juste avant la coupure compte une fois. Après la révélation, il ne peut plus répondre à la question.
 - **CAP-16**
-  - **intent :** si le navigateur ou l'ordinateur de l'animateur se ferme, l'animateur, ou un collègue avec qui le quiz est partagé, se reconnecte depuis le même poste ou un autre et reprend la partie là où elle était. Une seule session pilote la partie à la fois.
+  - **intent :** si le navigateur ou l'ordinateur de l'animateur se ferme, l'animateur, ou un collègue avec qui le quiz est partagé, se reconnecte depuis le même poste ou un autre et reprend la partie là où elle était.
   - **success :** l'animateur ferme son onglet en plein compte à rebours, se reconnecte depuis un autre ordinateur, et la partie reprend au même point, joueurs, scores, thème et niveau de la mascotte intacts. Un collaborateur sans partage ne peut pas reprendre la partie.
 - **CAP-17**
   - **intent :** une page de test de connectivité, publique et transmissible avant la séance, vérifie que le réseau d'un participant laisse passer TazQuiz.
@@ -135,7 +130,8 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
 - **Réseau des joueurs :** wifi invité de client, réseau d'entreprise filtré ou 4G. Tout passe par HTTPS sur le port 443, avec un repli en long-polling quand le WebSocket est bloqué.
 - **Hybride :** les joueurs à distance suivent le grand écran via le partage d'écran Teams. Tout ce qui doit être vu ou entendu passe par le grand écran. Le décalage du partage Teams est toléré, sans compensation.
 - **Formats d'écran :** le grand écran est en 16:9 ; les joueurs utilisent un téléphone (navigateur mobile).
-- **Échéance :** l'inauguration du 2026-11-02 est ferme et toute la V1 y est livrée. En cas de retard constaté à une revue datée, on applique l'ordre de sacrifice de `jalons-et-risques.md`. La question de classement (CAP-12) et la mascotte (CAP-22) ne peuvent pas être sacrifiées.
+- **Comportements techniques :** les règles de `regles-techniques.md` (temps mesuré par le serveur, réponse comptée une seule fois, copie figée du quiz, session pilote unique, etc.) s'imposent à l'architecture.
+- **Échéance :** l'inauguration du 2026-11-02 est ferme et toute la V1 y est livrée. En cas de retard constaté à une revue de décision, on applique l'ordre de sacrifice de `jalons-et-risques.md`. La question de classement (CAP-12) et la mascotte (CAP-22) ne peuvent pas être sacrifiées.
 - **Équipe :** 2 personnes, dont un profil non technique, en développement assisté par l'IA. La stack, que l'architecture choisira sans préférence imposée, doit rester compréhensible et maintenable par cette équipe et s'héberger sur OVH.
 
 ## Non-goals
@@ -159,10 +155,8 @@ Pour arbitrer, appliquer ces trois règles, dans cet ordre :
 - Une question à choix multiple ne rapporte des points que si toutes les bonnes réponses sont cochées, et elles seules.
 - Il n'y a ni pause en cours de question, ni fin anticipée de la partie en V1.
 - Un vote ne casse ni ne prolonge la série.
-- Le temps de réponse se mesure à partir du clic de l'animateur qui lance la question, jusqu'à la validation de la réponse.
 - Seuls les membres du tenant Tasmane accèdent, pas les comptes invités.
 - Un quiz sans question scorée se termine sans podium, sur la synthèse des votes.
-- Pour un vote à choix multiple, la répartition est exprimée en pourcentage des votants, et son total peut dépasser 100 %.
 - Les seuils de vérification (écart d'affichage d'au plus 1 s, téléphone de 360 px, 20 % de joueurs simulés en long-polling) viennent de la revue et restent à confirmer.
 
 ## Open Questions

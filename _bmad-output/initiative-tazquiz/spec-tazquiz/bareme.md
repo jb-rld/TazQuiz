@@ -6,7 +6,7 @@ Ce barème reprend la mécanique de Kahoot. Il n'a pas été confirmé au point 
 
 | Élément | Règle |
 |---|---|
-| Score de vitesse | `arrondi(1000 × (1 − (t / T) / 2))`, où `t` est le temps entre le lancement de la question par l'animateur et la validation de la réponse, et `T` le temps limite de la question. Il va de 500 à 1 000 points, hors bonus. |
+| Score de vitesse | `arrondi(1000 × (1 − (t / T) / 2))`, où `t` est le temps, mesuré par le serveur, entre le lancement de la question par l'animateur et la réception de la réponse confirmée (`regles-techniques.md`), et `T` le temps limite de la question. Il va de 500 à 1 000 points, hors bonus. |
 | Choix simple ou multiple juste | Score de vitesse. Pour un choix multiple, il faut cocher exactement les bonnes réponses ; une réponse partielle compte comme fausse. *(hypothèse ; question ouverte)* |
 | Question de classement (CAP-12) | On compte les paires d'éléments dans le bon ordre relatif. **Juste** (toutes les paires) : score de vitesse, la série continue. **Partiel** (au moins une paire, pas toutes) : `arrondi(score de vitesse × paires bien ordonnées / nombre de paires)`, sans bonus, la série retombe à 0. **Faux** (aucune paire, ordre exactement inversé) : 0 point, la série retombe à 0. |
 | Réponse fausse, ou pas de réponse | 0 point. La série retombe à 0. |
