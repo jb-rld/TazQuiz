@@ -1,0 +1,416 @@
+<title>Taz, le diable Tasmane — formes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ECE6DD; --surface:#FFFFFF; --ink:#1B2B45; --muted:#5B6478; --line:#D8CFC2;
+  --accent:#C8243A; --chip:#273C59; --chip-ink:#FFFFFF; --gold:#FFC83D; --ok:#007A55; --no:#A3283A;
+  --shadow:rgba(27,43,69,.35);
+  --sans:"Archivo","Aileron",-apple-system,"Segoe UI",Arial,sans-serif;
+  --pixel:"Press Start 2P","Courier New",monospace;
+  --pix2:"Silkscreen","Courier New",monospace;
+  --st-bg:#0B1220; --st-halo:#1A2A48; --st-dots:#1C2944; --st-bub:#FFFFFF; --st-bub-b:#FFFFFF; --st-bub-ink:#1B2B45; --st-sh:#000000; --st-tag:#FF5468; --st-tag-ink:#0B1220; --st-scan:rgba(0,0,0,.28); --st-ink:#F4F2EC;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1626; --surface:#16223A; --ink:#F4F2EC; --muted:#A9B3C7; --line:#2C3D5E;
+  --accent:#FF6B7C; --chip:#2C3D5E; --chip-ink:#F4F2EC; --ok:#1FD19B; --no:#FF8A98; --shadow:rgba(0,0,0,.6); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0E1626; --surface:#16223A; --ink:#F4F2EC; --muted:#A9B3C7; --line:#2C3D5E;
+  --accent:#FF6B7C; --chip:#2C3D5E; --chip-ink:#F4F2EC; --ok:#1FD19B; --no:#FF8A98; --shadow:rgba(0,0,0,.6); color-scheme:dark }
+.stage-light{ --st-bg:#F3EDE1; --st-halo:#FBF7EF; --st-dots:#E2D8C6; --st-bub:#FFFFFF; --st-bub-b:#273C59; --st-bub-ink:#1B2B45; --st-sh:#273C59; --st-tag:#C8243A; --st-tag-ink:#FFFFFF; --st-scan:rgba(39,60,89,.05); --st-ink:#1B2B45 }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:20px;padding-block:40px 120px;display:flex;flex-direction:column;gap:36px}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+
+.head{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:32px;align-items:end}
+.eyebrow{font:700 12px var(--pix2);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.head h1{font-size:clamp(34px,5vw,54px);font-weight:900;letter-spacing:-.03em;line-height:1.02;margin-top:10px}
+.head h1 span{display:block;font:400 clamp(13px,1.8vw,18px) var(--pixel);letter-spacing:0;margin-top:14px;color:var(--muted)}
+.brief{display:flex;flex-direction:column;gap:10px;color:var(--muted);max-width:60ch}
+.brief b{color:var(--ink)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-top:2px solid var(--line);padding-top:18px}
+.toolbar p{color:var(--muted);font-size:14px}
+.seg{display:inline-flex;border:2px solid var(--chip);border-radius:12px;overflow:hidden}
+.seg button{font:700 12px var(--pix2);letter-spacing:.06em;padding:9px 14px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--chip);color:var(--chip-ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.scene{position:relative;overflow:hidden;background:radial-gradient(ellipse at 30% 80%,var(--st-halo) 0%,var(--st-bg) 65%)}
+.scene::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--st-dots) 1.3px,transparent 1.4px);background-size:22px 22px}
+.scene::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,var(--st-scan) 0 1px,transparent 1px 3px)}
+.mascot{position:relative;z-index:2;overflow:visible}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-7px) rotate(1.5deg)}}
+@media (prefers-reduced-motion: no-preference){.bob{animation:bob 2.6s ease-in-out infinite}}
+
+.lineup{border-radius:24px;padding:22px 18px 18px}
+.lineup-row{position:relative;z-index:2;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;align-items:end}
+.lineup-row a{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--st-ink);border-radius:14px;padding:6px 2px}
+.lineup-row a:hover{background:rgba(255,255,255,.06)}
+.lineup-row svg{width:100%;max-width:150px;height:auto;aspect-ratio:200/220}
+.lineup-row b{font:700 12px var(--pix2);letter-spacing:.05em;text-align:center}
+
+.mini-row{position:relative;z-index:2;display:flex;gap:18px;align-items:flex-end;justify-content:center;margin-top:16px}
+.mini-row svg{width:46px;height:auto}
+
+.list{display:flex;flex-direction:column;gap:24px}
+.card{background:var(--surface);border-radius:24px;overflow:hidden;display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);box-shadow:0 18px 40px -30px var(--shadow);border:2px solid transparent;scroll-margin-top:20px}
+.card.is-fav{border-color:var(--gold)}
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:56px 16px 20px;min-height:340px}
+.num{position:absolute;top:14px;left:14px;z-index:3;font:11px var(--pixel);color:var(--st-tag-ink);background:var(--st-tag);padding:6px 8px;border-radius:7px}
+.bubble{position:relative;z-index:2;background:var(--st-bub);color:var(--st-bub-ink);border:3px solid var(--st-bub-b);border-radius:16px;padding:9px 12px 10px;font-size:13.5px;font-weight:700;line-height:1.3;margin-bottom:12px;box-shadow:4px 4px 0 var(--st-sh);max-width:92%}
+.bubble::after{content:"";position:absolute;left:46%;bottom:-9px;width:14px;height:14px;background:var(--st-bub);border-right:3px solid var(--st-bub-b);border-bottom:3px solid var(--st-bub-b);transform:rotate(45deg)}
+.stage .mascot{width:160px;height:176px}
+.podium{position:relative;z-index:1;width:190px;height:40px;margin-top:-22px;border-radius:50%/40%;background:linear-gradient(#2E4A78,#1B2B45);box-shadow:inset 0 3px 0 rgba(255,255,255,.14),4px 6px 0 var(--st-sh);display:flex;align-items:flex-end;justify-content:center;padding-bottom:5px}
+.podium span{font:700 10px var(--pix2);color:#FFC83D;letter-spacing:.12em}
+
+.body{padding:24px 26px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-start;justify-content:space-between}
+.kind{font:700 11px var(--pix2);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.body h3{font-size:26px;font-weight:900;letter-spacing:-.02em;line-height:1.1;margin-top:4px}
+.gauge{display:grid;gap:6px;justify-items:end}
+.gauge small{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pips{display:flex;gap:4px}
+.pips i{width:16px;height:10px;background:var(--line)}
+.pips i.on{background:var(--accent)}
+.gauge span{font:10px var(--pixel)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0}
+.facts div{display:grid;gap:3px;align-content:start}
+.facts dt{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.facts dd{margin:0;font-size:14px;line-height:1.45}
+.facts .warn dt{color:var(--accent)}
+.pick{align-self:flex-start;font:700 13px var(--sans);padding:10px 16px;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;display:flex;gap:8px;align-items:center;margin-top:auto}
+.pick[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1B2B45}
+.pick .cnt{font:10px var(--pixel)}
+
+.panel{background:var(--surface);border-radius:24px;padding:28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:32px;box-shadow:0 18px 40px -30px var(--shadow)}
+.panel h2,.results h2{font-size:28px;font-weight:900;letter-spacing:-.02em}
+.lead{color:var(--muted);margin-top:8px;max-width:56ch}
+.summary{margin-top:16px;font-size:14px}
+form{display:grid;gap:14px}
+label{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:grid;gap:6px}
+textarea{font:15px var(--sans);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:11px 13px;width:100%;min-height:110px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{font:700 13px var(--pix2);letter-spacing:.06em;padding:13px 18px;border-radius:12px;border:0;background:var(--chip);color:var(--chip-ink);cursor:pointer;box-shadow:4px 4px 0 var(--gold)}
+.btn[disabled]{opacity:.5;cursor:default}
+.status{font-size:14px;color:var(--muted)}
+.status.ok{color:var(--ok)}.status.err{color:var(--no)}
+.board{margin-top:18px;display:grid;gap:12px}
+.score{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr) auto;gap:14px;align-items:center;font-size:14px}
+.bar{height:14px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold)}
+.score .n{font:11px var(--pixel)}
+.voices{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.voice{border:2px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:6px;font-size:14px;min-width:0}
+.voice .who{font-weight:800}.voice .meta{color:var(--muted);font-size:13px}
+.voice p{overflow-wrap:anywhere}
+.empty{color:var(--muted);border:2px dashed var(--line);border-radius:16px;padding:20px;margin-top:18px}
+
+@media (max-width:960px){.head{grid-template-columns:1fr}.facts{grid-template-columns:1fr}}
+@media (max-width:760px){.card{grid-template-columns:1fr}.panel{grid-template-columns:1fr;padding:22px}.lineup-row b{font-size:9px}.score{grid-template-columns:minmax(0,1fr) auto}.score .bar{grid-column:1 / -1;order:3}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <filter id="blur5" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <radialGradient id="eyeW" cx="40%" cy="32%" r="72%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE0EC"/></radialGradient>
+  <radialGradient id="pupil" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#3D5072"/><stop offset="1" stop-color="#0B1020"/></radialGradient>
+  <radialGradient id="pink" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFC4CC"/><stop offset=".55" stop-color="#F55364"/><stop offset="1" stop-color="#A21F35"/></radialGradient>
+  <radialGradient id="nFur" cx="35%" cy="26%" r="82%"><stop offset="0" stop-color="#6F8FC2"/><stop offset=".45" stop-color="#273C59"/><stop offset="1" stop-color="#0E1828"/></radialGradient>
+  <radialGradient id="nMuz" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#F4EFEA"/><stop offset="1" stop-color="#B9AFA4"/></radialGradient>
+  <linearGradient id="nBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8794"/><stop offset="1" stop-color="#D23A4E"/></linearGradient>
+
+  <!-- 1 · Le rond -->
+  <symbol id="f1" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="206" rx="58" ry="8" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <ellipse cx="100" cy="196" rx="30" ry="14" fill="url(#nFur)"/>
+    <circle cx="48" cy="56" r="20" fill="url(#nFur)"/><circle cx="152" cy="56" r="20" fill="url(#nFur)"/>
+    <circle cx="48" cy="58" r="10" fill="url(#pink)"/><circle cx="152" cy="58" r="10" fill="url(#pink)"/>
+    <circle cx="100" cy="124" r="78" fill="url(#nFur)"/>
+    <path d="M30 138 Q100 170 170 138 Q154 160 100 164 Q46 160 30 138Z" fill="url(#nBand)"/>
+    <ellipse cx="68" cy="88" rx="26" ry="12" transform="rotate(-28 68 88)" fill="#fff" opacity=".25" filter="url(#blur2)"/>
+    <ellipse cx="100" cy="148" rx="32" ry="22" fill="url(#nMuz)"/>
+    <ellipse cx="100" cy="136" rx="12" ry="8" fill="url(#pink)"/><ellipse cx="96" cy="133" rx="4" ry="2" fill="#fff" opacity=".8"/>
+    <path d="M84 156 Q100 166 116 156" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <ellipse cx="78" cy="106" rx="14" ry="15" fill="url(#eyeW)"/><ellipse cx="122" cy="106" rx="14" ry="15" fill="url(#eyeW)"/>
+    <circle cx="81" cy="109" r="7.5" fill="url(#pupil)"/><circle cx="125" cy="109" r="7.5" fill="url(#pupil)"/>
+    <circle cx="84" cy="105" r="2.6" fill="#fff"/><circle cx="128" cy="105" r="2.6" fill="#fff"/>
+  </symbol>
+
+  <!-- 2 · L'anguleux -->
+  <symbol id="f2" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="206" rx="56" ry="8" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <path d="M100 196 L80 174 L120 174 Z" fill="url(#nFur)"/>
+    <path d="M44 40 L62 76 L28 78 Z" fill="url(#nFur)"/><path d="M156 40 L138 76 L172 78 Z" fill="url(#nFur)"/>
+    <path d="M48 46 L58 66 L36 68 Z" fill="url(#pink)"/><path d="M152 46 L142 66 L164 68 Z" fill="url(#pink)"/>
+    <path d="M100 48 L172 100 L146 178 L54 178 L28 100 Z" fill="url(#nFur)"/>
+    <path d="M40 120 L100 142 L160 120 L148 154 L100 166 L52 154 Z" fill="url(#nBand)"/>
+    <path d="M62 78 L92 70 L80 96 Z" fill="#fff" opacity=".22" filter="url(#blur2)"/>
+    <path d="M70 150 L130 150 L118 180 L82 180 Z" fill="url(#nMuz)"/>
+    <path d="M92 136 L108 136 L100 150 Z" fill="url(#pink)"/>
+    <path d="M86 162 L100 170 L114 162" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M62 98 L86 86 L86 112 Z" fill="url(#eyeW)"/><path d="M138 98 L114 86 L114 112 Z" fill="url(#eyeW)"/>
+    <circle cx="78" cy="100" r="6.5" fill="url(#pupil)"/><circle cx="122" cy="100" r="6.5" fill="url(#pupil)"/>
+  </symbol>
+
+  <!-- 3 · Le longiligne -->
+  <symbol id="f3" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="212" rx="34" ry="6" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <path d="M90 190 Q70 206 60 212" stroke="url(#nFur)" stroke-width="10" fill="none" stroke-linecap="round"/>
+    <ellipse cx="78" cy="38" rx="9" ry="26" transform="rotate(-10 78 38)" fill="url(#nFur)"/><ellipse cx="122" cy="38" rx="9" ry="26" transform="rotate(10 122 38)" fill="url(#nFur)"/>
+    <ellipse cx="79" cy="40" rx="4" ry="16" transform="rotate(-10 79 40)" fill="url(#pink)"/><ellipse cx="121" cy="40" rx="4" ry="16" transform="rotate(10 121 40)" fill="url(#pink)"/>
+    <ellipse cx="100" cy="118" rx="38" ry="88" fill="url(#nFur)"/>
+    <path d="M64 120 Q100 142 136 120 Q128 150 100 158 Q72 150 64 120Z" fill="url(#nBand)"/>
+    <ellipse cx="78" cy="68" rx="14" ry="30" transform="rotate(-14 78 68)" fill="#fff" opacity=".22" filter="url(#blur2)"/>
+    <ellipse cx="100" cy="170" rx="22" ry="26" fill="url(#nMuz)"/>
+    <ellipse cx="100" cy="158" rx="9" ry="7" fill="url(#pink)"/>
+    <path d="M88 180 Q100 188 112 180" stroke="#0E1828" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="84" cy="96" rx="10" ry="11" fill="url(#eyeW)"/><ellipse cx="116" cy="96" rx="10" ry="11" fill="url(#eyeW)"/>
+    <circle cx="86" cy="98" r="5.5" fill="url(#pupil)"/><circle cx="118" cy="98" r="5.5" fill="url(#pupil)"/>
+  </symbol>
+
+  <!-- 4 · Le carré -->
+  <symbol id="f4" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="206" rx="58" ry="8" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <rect x="80" y="182" width="40" height="18" rx="4" fill="url(#nFur)"/>
+    <rect x="34" y="30" width="34" height="30" rx="6" fill="url(#nFur)"/><rect x="132" y="30" width="34" height="30" rx="6" fill="url(#nFur)"/>
+    <rect x="41" y="37" width="20" height="16" rx="3" fill="url(#pink)"/><rect x="139" y="37" width="20" height="16" rx="3" fill="url(#pink)"/>
+    <rect x="30" y="56" width="140" height="130" rx="20" fill="url(#nFur)"/>
+    <rect x="34" y="118" width="132" height="34" fill="url(#nBand)"/>
+    <rect x="48" y="66" width="46" height="18" rx="7" transform="rotate(-6 48 66)" fill="#fff" opacity=".2" filter="url(#blur2)"/>
+    <rect x="66" y="150" width="68" height="46" rx="12" fill="url(#nMuz)"/>
+    <rect x="90" y="138" width="20" height="16" rx="4" fill="url(#pink)"/>
+    <path d="M80 176 L100 184 L120 176" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <rect x="62" y="88" width="26" height="24" rx="5" fill="url(#eyeW)"/><rect x="112" y="88" width="26" height="24" rx="5" fill="url(#eyeW)"/>
+    <rect x="71" y="94" width="12" height="12" rx="2" fill="url(#pupil)"/><rect x="121" y="94" width="12" height="12" rx="2" fill="url(#pupil)"/>
+  </symbol>
+
+  <!-- 5 · Le bancal -->
+  <symbol id="f5" viewBox="0 0 200 220">
+    <ellipse cx="102" cy="208" rx="54" ry="7" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <ellipse cx="96" cy="196" rx="34" ry="12" transform="rotate(4 96 196)" fill="url(#nFur)"/>
+    <circle cx="150" cy="38" r="26" fill="url(#nFur)"/><path d="M38 70 L54 28 L70 66 Z" fill="url(#nFur)"/>
+    <circle cx="150" cy="42" r="12" fill="url(#pink)"/><path d="M48 62 L55 40 L63 58 Z" fill="url(#pink)"/>
+    <path d="M30 150 Q20 80 90 56 Q166 44 176 112 Q182 172 108 190 Q40 198 30 150Z" fill="url(#nFur)"/>
+    <path d="M36 128 Q110 150 172 110 Q164 148 104 168 Q52 166 36 128Z" fill="url(#nBand)"/>
+    <ellipse cx="62" cy="86" rx="22" ry="11" transform="rotate(-20 62 86)" fill="#fff" opacity=".22" filter="url(#blur2)"/>
+    <ellipse cx="108" cy="150" rx="34" ry="24" transform="rotate(6 108 150)" fill="url(#nMuz)"/>
+    <ellipse cx="104" cy="138" rx="12" ry="8" fill="url(#pink)"/><ellipse cx="100" cy="135" rx="4" ry="2" fill="#fff" opacity=".8"/>
+    <path d="M88 160 Q108 172 128 156" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <ellipse cx="68" cy="104" rx="17" ry="18" fill="url(#eyeW)"/><ellipse cx="124" cy="96" rx="10" ry="11" fill="url(#eyeW)"/>
+    <circle cx="72" cy="108" r="9" fill="url(#pupil)"/><circle cx="127" cy="98" r="5.5" fill="url(#pupil)"/>
+    <circle cx="76" cy="103" r="3" fill="#fff"/><circle cx="130" cy="94" r="2" fill="#fff"/>
+  </symbol>
+</defs>
+</svg>
+
+<main class="wrap">
+  <header class="head">
+    <div>
+      <div class="eyebrow">TazQuiz · Taz, le diable Tasmane</div>
+      <h1>Cinq formes pour Taz<span>MÊMES COULEURS, AUTRE SILHOUETTE</span></h1>
+    </div>
+    <div class="brief">
+      <p>Le tourbillon est abandonné. Taz reste un diable de Tasmanie aux couleurs <b>Tasmane</b> (bleu marine, croissant rouge), mais on explore des silhouettes différentes, volontairement un peu bizarres et loufoques.</p>
+      <p>Son caractère ne change pas : pince-sans-rire, il chambre mais reste bienveillant. Les dessins suggèrent un jouet 3D, le rendu final viendra plus tard.</p>
+    </div>
+  </header>
+
+  <section class="scene lineup" aria-label="Les cinq formes côte à côte">
+    <div class="lineup-row" id="lineup"></div>
+  </section>
+
+  <div class="toolbar">
+    <p>Regarde chaque forme sur les deux thèmes du grand écran.</p>
+    <div class="seg" role="group" aria-label="Thème du grand écran">
+      <button type="button" id="th-dark" aria-pressed="true">BORNE FONCÉE</button>
+      <button type="button" id="th-light" aria-pressed="false">ÉCRAN CRÈME</button>
+    </div>
+  </div>
+
+  <section class="list" id="list" aria-label="Les formes en détail"></section>
+
+  <section class="panel" aria-labelledby="t-avis">
+    <div>
+      <h2 id="t-avis">Ton avis</h2>
+      <p class="lead">Choisis ta forme préférée sur les fiches. Tu peux aussi composer ton mélange idéal, par exemple « le corps du 1, les oreilles du 5 ».</p>
+      <p class="summary" id="summary"></p>
+    </div>
+    <form id="form" novalidate>
+      <label for="f-note">Ton mélange idéal ou ton commentaire
+        <textarea id="f-note" maxlength="600" placeholder="Ce que tu prendrais de chaque forme, ce qui te gêne…"></textarea>
+      </label>
+      <div class="row">
+        <button type="submit" class="btn" id="f-send">ENVOYER MON AVIS</button>
+        <span class="status" id="f-status" role="status"></span>
+      </div>
+    </form>
+  </section>
+
+  <section class="results" aria-labelledby="t-res">
+    <h2 id="t-res">Ce qu'en pense l'équipe</h2>
+    <p class="lead" id="res-lead">Les résultats s'affichent une fois ton avis envoyé, pour ne pas influencer ton choix.</p>
+    <div id="res"></div>
+  </section>
+</main>
+
+<script>
+const VARS = [
+  { id:"f1", short:"Le rond", title:"Le rond", kind:"Silhouette · boule compacte", legib:5, legibTxt:"très lisible",
+    line:"Je roule, je ne cours pas. Question suivante.",
+    keep:"Un corps rond et compact, oreilles rondes, silhouette de galet. Pas de membres visibles, juste une boule qui rebondit.",
+    feel:"Mignon et jovial, façon mascotte de peluche. Très doux, presque enfantin.",
+    warn:"Peut manquer de caractère « arcade » si tout est trop rond. À tester avec une pose plus dynamique.",
+    colors:["#273C59","#F55364","#DAD3CC","#6F8FC2"] },
+  { id:"f2", short:"L'anguleux", title:"L'anguleux", kind:"Silhouette · facettes et pointes", legib:3, legibTxt:"moyenne",
+    line:"Angle droit, angle fermé. Comme vos réponses.",
+    keep:"Un corps en facettes, oreilles pointues triangulaires, un croissant en chevron. Tout est construit à l'équerre.",
+    feel:"Un côté geek, presque low-poly, qui va bien avec l'univers arcade/pixel.",
+    warn:"Les pointes peuvent crénéler en petite taille sur téléphone. À vérifier à l'échelle HUD.",
+    colors:["#273C59","#F55364","#0E1828","#6F8FC2"] },
+  { id:"f3", short:"Le longiligne", title:"Le longiligne", kind:"Silhouette · étirée, grandes oreilles", legib:3, legibTxt:"moyenne",
+    line:"Vu d'en haut, je vois déjà qui va se tromper.",
+    keep:"Un corps étiré en hauteur, de longues oreilles fines, une seule jambe visible qui dépasse. Une silhouette toute en longueur.",
+    feel:"Un côté dégingandé et comique, presque élastique.",
+    warn:"Moins carré à l'écran : prend de la hauteur, peut déborder sur un petit cadre (téléphone).",
+    colors:["#273C59","#F55364","#DAD3CC","#6F8FC2"] },
+  { id:"f4", short:"Le carré", title:"Le carré", kind:"Silhouette · blocs, façon pixel-art 3D", legib:5, legibTxt:"très lisible",
+    line:"Je suis carré. Dans ma tête aussi.",
+    keep:"Un corps en bloc arrondi aux angles, oreilles et museau rectangulaires, croissant en bande droite. Construit comme avec des cubes.",
+    feel:"Colle bien à l'esprit borne d'arcade / pixel du HUD, en version jouet 3D.",
+    warn:"Peut sembler un peu raide ou robotique si les animations ne compensent pas avec du rebond.",
+    colors:["#273C59","#F55364","#DAD3CC","#6F8FC2"] },
+  { id:"f5", short:"Le bancal", title:"Le bancal", kind:"Silhouette · volontairement asymétrique", legib:2, legibTxt:"à travailler",
+    line:"Oui, une oreille est plus grande. Et alors ?",
+    keep:"Un corps bancal, une oreille ronde et une oreille pointue, un œil plus grand que l'autre, une posture penchée. Rien n'est symétrique.",
+    feel:"Très loufoque et attachant, un côté « raté avec amour » qui peut beaucoup faire rire.",
+    warn:"L'asymétrie complique l'animation (miroir, cycles de marche) et peut nuire à la lisibilité à petite taille.",
+    colors:["#273C59","#F55364","#DAD3CC","#6F8FC2"] }
+];
+const byId = Object.fromEntries(VARS.map(v => [v.id, v]));
+const $ = id => document.getElementById(id);
+
+VARS.forEach((v, i) => {
+  const a = document.createElement("a"); a.href = "#card-" + v.id;
+  a.innerHTML = `<svg class="mascot" viewBox="0 0 200 220" role="img" aria-label="${v.title}"><use href="#${v.id}"/></svg><b>${i + 1} · ${v.short.toUpperCase()}</b>`;
+  $("lineup").appendChild(a);
+
+  const art = document.createElement("article"); art.className = "card"; art.id = "card-" + v.id;
+  art.innerHTML = `
+    <div class="scene stage">
+      <span class="num">${i + 1}</span>
+      <div class="bubble">${v.line}</div>
+      <svg class="mascot bob" viewBox="0 0 200 220" role="img" aria-label="${v.title}"><use href="#${v.id}"/></svg>
+      <div class="podium"><span>TAZQUIZ LIVE</span></div>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div><div class="kind">${v.kind}</div><h3>${v.title}</h3></div>
+        <div class="gauge"><small>Lisibilité en petit format</small><div class="pips">${[1,2,3,4,5].map(n => `<i class="${n <= v.legib ? "on" : ""}"></i>`).join("")}</div><span>${v.legibTxt.toUpperCase()}</span></div>
+      </div>
+      <dl class="facts">
+        <div><dt>Ce qu'on voit</dt><dd>${v.keep}</dd></div>
+        <div><dt>Ce qu'il dégage</dt><dd>${v.feel}</dd></div>
+        <div class="warn"><dt>À surveiller</dt><dd>${v.warn}</dd></div>
+      </dl>
+      <button type="button" class="pick" id="fav-${v.id}" data-id="${v.id}" aria-pressed="false">Mon préféré <span class="cnt" hidden></span></button>
+    </div>`;
+  $("list").appendChild(art);
+});
+
+const stageTheme = t => {
+  document.body.classList.toggle("stage-light", t === "light");
+  $("th-dark").setAttribute("aria-pressed", t !== "light");
+  $("th-light").setAttribute("aria-pressed", t === "light");
+  try { localStorage.setItem("tq-stage", t); } catch (e) {}
+};
+$("th-dark").onclick = () => stageTheme("dark");
+$("th-light").onclick = () => stageTheme("light");
+try { if (localStorage.getItem("tq-stage") === "light") stageTheme("light"); } catch (e) {}
+
+let fav = null, votes = {}, myId = null, isOwner = false, db = null, userCap = null, sent = false;
+function renderPicks(){
+  VARS.forEach(v => {
+    $("fav-" + v.id).setAttribute("aria-pressed", fav === v.id);
+    $("card-" + v.id).classList.toggle("is-fav", fav === v.id);
+  });
+  $("summary").textContent = "Ton préféré : " + (fav ? byId[fav].title : "pas encore choisi");
+}
+$("list").addEventListener("click", e => {
+  const b = e.target.closest(".pick"); if (!b) return;
+  fav = fav === b.dataset.id ? null : b.dataset.id;
+  if (sent) status("Modification non envoyée.", "");
+  renderPicks();
+});
+function status(msg, cls){ const el = $("f-status"); el.textContent = msg; el.className = "status" + (cls ? " " + cls : ""); }
+
+async function renderResults(){
+  const entries = Object.entries(votes);
+  const show = sent || isOwner;
+  VARS.forEach(v => {
+    const n = entries.filter(([, x]) => x.fav === v.id).length;
+    const c = $("fav-" + v.id).querySelector(".cnt"); c.textContent = "♥ " + n; c.hidden = !show || !n;
+  });
+  const res = $("res"); res.innerHTML = "";
+  if (!show) return;
+  $("res-lead").textContent = entries.length ? entries.length + (entries.length > 1 ? " avis reçus." : " avis reçu.") : "Aucun avis pour l'instant.";
+  if (!entries.length) { const e = document.createElement("p"); e.className = "empty"; e.textContent = "Partage le lien de cette page à l'équipe projet : chaque avis apparaîtra ici en direct."; res.appendChild(e); return; }
+  const counts = VARS.map(v => ({ v, n: entries.filter(([, x]) => x.fav === v.id).length }));
+  const max = Math.max(1, ...counts.map(c => c.n));
+  const board = document.createElement("div"); board.className = "board";
+  counts.sort((a, b) => b.n - a.n).forEach(({ v, n }) => {
+    const row = document.createElement("div"); row.className = "score";
+    const name = document.createElement("span"); name.textContent = v.title;
+    const bar = document.createElement("div"); bar.className = "bar"; const i = document.createElement("i"); i.style.width = (n / max * 100) + "%"; bar.appendChild(i);
+    const s = document.createElement("span"); s.className = "n"; s.textContent = "♥ " + n;
+    row.append(name, bar, s); board.appendChild(row);
+  });
+  res.appendChild(board);
+  const ps = userCap ? await userCap.profiles(entries.map(([id]) => id)) : {};
+  const voices = document.createElement("div"); voices.className = "voices";
+  entries.sort((a, b) => (b[1].at || "").localeCompare(a[1].at || "")).forEach(([id, x]) => {
+    const card = document.createElement("div"); card.className = "voice";
+    const who = document.createElement("div"); who.className = "who"; who.textContent = (ps[id] && ps[id].name) || (id === myId ? "Toi" : "Un membre de l'équipe");
+    const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = "♥ " + (x.fav ? (byId[x.fav]?.title || "?") : "aucun");
+    card.append(who, meta);
+    if (x.note) { const p = document.createElement("p"); p.textContent = x.note; card.appendChild(p); }
+    voices.appendChild(card);
+  });
+  res.appendChild(voices);
+}
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!db || !myId) { status("L'enregistrement n'est pas disponible ici. Envoie ton choix à Paul directement.", "err"); return; }
+  if (!fav && !$("f-note").value.trim()) { status("Choisis une forme ou écris un mot.", "err"); return; }
+  $("f-send").disabled = true; status("Envoi…", "");
+  try {
+    await db.doc("votes/" + myId).set({ fav, note: $("f-note").value.trim().slice(0, 600), at: new Date().toISOString() });
+    sent = true; status("Avis envoyé. Tu peux le modifier quand tu veux.", "ok"); $("f-send").textContent = "METTRE À JOUR MON AVIS";
+  } catch (err) {
+    status(err && err.code === "invalid_argument" ? "Tu n'as pas les droits pour donner ton avis sur cette page. Demande à Paul un accès Contributeur." : "L'envoi a échoué. Réessaie dans un instant.", "err");
+  } finally { $("f-send").disabled = false; renderResults(); }
+});
+
+renderPicks();
+(async () => {
+  if (!window.claude || !window.claude.use) { status("Mode lecture : l'avis ne peut pas être enregistré ici.", ""); return; }
+  [db, userCap] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+  if (userCap) { myId = await userCap.id(); isOwner = await userCap.isOwner(); }
+  if (!db || !myId) { status("Connecte-toi à claude.ai pour donner ton avis.", ""); $("f-send").disabled = true; renderResults(); return; }
+  const mine = await db.doc("votes/" + myId).get().catch(() => null);
+  if (mine && mine.exists) {
+    const x = mine.data(); sent = true; fav = x.fav || null; $("f-note").value = x.note || "";
+    $("f-send").textContent = "METTRE À JOUR MON AVIS"; renderPicks();
+  }
+  db.collection("votes").onSnapshot(snap => {
+    votes = {}; snap.docs.forEach(d => { if (d.exists) votes[d.id] = d.data(); });
+    renderResults();
+  }, () => {});
+  renderResults();
+})();
+</script>

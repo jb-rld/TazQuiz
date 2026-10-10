@@ -1,0 +1,414 @@
+<title>Taz, le rond — expressions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ECE6DD; --surface:#FFFFFF; --ink:#1B2B45; --muted:#5B6478; --line:#D8CFC2;
+  --accent:#C8243A; --chip:#273C59; --chip-ink:#FFFFFF; --gold:#FFC83D; --ok:#007A55; --no:#A3283A;
+  --shadow:rgba(27,43,69,.35);
+  --sans:"Archivo","Aileron",-apple-system,"Segoe UI",Arial,sans-serif;
+  --pixel:"Press Start 2P","Courier New",monospace;
+  --pix2:"Silkscreen","Courier New",monospace;
+  --st-bg:#0B1220; --st-halo:#1A2A48; --st-dots:#1C2944; --st-bub:#FFFFFF; --st-bub-b:#FFFFFF; --st-bub-ink:#1B2B45; --st-sh:#000000; --st-tag:#FF5468; --st-tag-ink:#0B1220; --st-scan:rgba(0,0,0,.28); --st-ink:#F4F2EC;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1626; --surface:#16223A; --ink:#F4F2EC; --muted:#A9B3C7; --line:#2C3D5E;
+  --accent:#FF6B7C; --chip:#2C3D5E; --chip-ink:#F4F2EC; --ok:#1FD19B; --no:#FF8A98; --shadow:rgba(0,0,0,.6); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0E1626; --surface:#16223A; --ink:#F4F2EC; --muted:#A9B3C7; --line:#2C3D5E;
+  --accent:#FF6B7C; --chip:#2C3D5E; --chip-ink:#F4F2EC; --ok:#1FD19B; --no:#FF8A98; --shadow:rgba(0,0,0,.6); color-scheme:dark }
+.stage-light{ --st-bg:#F3EDE1; --st-halo:#FBF7EF; --st-dots:#E2D8C6; --st-bub:#FFFFFF; --st-bub-b:#273C59; --st-bub-ink:#1B2B45; --st-sh:#273C59; --st-tag:#C8243A; --st-tag-ink:#FFFFFF; --st-scan:rgba(39,60,89,.05); --st-ink:#1B2B45 }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:20px;padding-block:40px 120px;display:flex;flex-direction:column;gap:36px}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+
+.head{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:32px;align-items:end}
+.eyebrow{font:700 12px var(--pix2);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.head h1{font-size:clamp(34px,5vw,54px);font-weight:900;letter-spacing:-.03em;line-height:1.02;margin-top:10px}
+.head h1 span{display:block;font:400 clamp(13px,1.8vw,18px) var(--pixel);letter-spacing:0;margin-top:14px;color:var(--muted)}
+.brief{display:flex;flex-direction:column;gap:10px;color:var(--muted);max-width:60ch}
+.brief b{color:var(--ink)}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-top:2px solid var(--line);padding-top:18px}
+.toolbar p{color:var(--muted);font-size:14px}
+.seg{display:inline-flex;border:2px solid var(--chip);border-radius:12px;overflow:hidden}
+.seg button{font:700 12px var(--pix2);letter-spacing:.06em;padding:9px 14px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--chip);color:var(--chip-ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+.scene{position:relative;overflow:hidden;background:radial-gradient(ellipse at 30% 80%,var(--st-halo) 0%,var(--st-bg) 65%)}
+.scene::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--st-dots) 1.3px,transparent 1.4px);background-size:22px 22px}
+.scene::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,var(--st-scan) 0 1px,transparent 1px 3px)}
+.mascot{position:relative;z-index:2;overflow:visible}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-7px) rotate(1.5deg)}}
+@media (prefers-reduced-motion: no-preference){.bob{animation:bob 2.6s ease-in-out infinite}}
+
+.lineup{border-radius:24px;padding:22px 18px 18px}
+.lineup-row{position:relative;z-index:2;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:end}
+.lineup-row a{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--st-ink);border-radius:14px;padding:6px 2px}
+.lineup-row a:hover{background:rgba(255,255,255,.06)}
+.lineup-row svg{width:100%;max-width:130px;height:auto;aspect-ratio:200/220}
+.lineup-row b{font:700 11px var(--pix2);letter-spacing:.05em;text-align:center}
+
+.list{display:flex;flex-direction:column;gap:24px}
+.card{background:var(--surface);border-radius:24px;overflow:hidden;display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);box-shadow:0 18px 40px -30px var(--shadow);border:2px solid transparent;scroll-margin-top:20px}
+.card.is-fav{border-color:var(--gold)}
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:56px 16px 20px;min-height:320px}
+.num{position:absolute;top:14px;left:14px;z-index:3;font:11px var(--pixel);color:var(--st-tag-ink);background:var(--st-tag);padding:6px 8px;border-radius:7px}
+.bubble{position:relative;z-index:2;background:var(--st-bub);color:var(--st-bub-ink);border:3px solid var(--st-bub-b);border-radius:16px;padding:9px 12px 10px;font-size:13.5px;font-weight:700;line-height:1.3;margin-bottom:12px;box-shadow:4px 4px 0 var(--st-sh);max-width:92%}
+.bubble::after{content:"";position:absolute;left:46%;bottom:-9px;width:14px;height:14px;background:var(--st-bub);border-right:3px solid var(--st-bub-b);border-bottom:3px solid var(--st-bub-b);transform:rotate(45deg)}
+.stage .mascot{width:150px;height:166px}
+
+.body{padding:24px 26px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.top{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-start;justify-content:space-between}
+.kind{font:700 11px var(--pix2);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.body h3{font-size:26px;font-weight:900;letter-spacing:-.02em;line-height:1.1;margin-top:4px}
+.gauge{display:grid;gap:6px;justify-items:end}
+.gauge small{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pips{display:flex;gap:4px}
+.pips i{width:16px;height:10px;background:var(--line)}
+.pips i.on{background:var(--accent)}
+.gauge span{font:10px var(--pixel)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:0}
+.facts div{display:grid;gap:3px;align-content:start}
+.facts dt{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.facts dd{margin:0;font-size:14px;line-height:1.45}
+.facts .warn dt{color:var(--accent)}
+.pick{align-self:flex-start;font:700 13px var(--sans);padding:10px 16px;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;display:flex;gap:8px;align-items:center;margin-top:auto}
+.pick[aria-pressed="true"]{background:var(--gold);border-color:var(--gold);color:#1B2B45}
+.pick .cnt{font:10px var(--pixel)}
+
+.panel{background:var(--surface);border-radius:24px;padding:28px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:32px;box-shadow:0 18px 40px -30px var(--shadow)}
+.panel h2,.results h2{font-size:28px;font-weight:900;letter-spacing:-.02em}
+.lead{color:var(--muted);margin-top:8px;max-width:56ch}
+.summary{margin-top:16px;font-size:14px}
+form{display:grid;gap:14px}
+label{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:grid;gap:6px}
+textarea{font:15px var(--sans);color:var(--ink);background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:11px 13px;width:100%;min-height:110px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{font:700 13px var(--pix2);letter-spacing:.06em;padding:13px 18px;border-radius:12px;border:0;background:var(--chip);color:var(--chip-ink);cursor:pointer;box-shadow:4px 4px 0 var(--gold)}
+.btn[disabled]{opacity:.5;cursor:default}
+.status{font-size:14px;color:var(--muted)}
+.status.ok{color:var(--ok)}.status.err{color:var(--no)}
+.board{margin-top:18px;display:grid;gap:12px}
+.score{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr) auto;gap:14px;align-items:center;font-size:14px}
+.bar{height:14px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold)}
+.score .n{font:11px var(--pixel)}
+.voices{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.voice{border:2px solid var(--line);border-radius:16px;padding:14px 16px;display:grid;gap:6px;font-size:14px;min-width:0}
+.voice .who{font-weight:800}.voice .meta{color:var(--muted);font-size:13px}
+.voice p{overflow-wrap:anywhere}
+.empty{color:var(--muted);border:2px dashed var(--line);border-radius:16px;padding:20px;margin-top:18px}
+
+@media (max-width:960px){.head{grid-template-columns:1fr}.facts{grid-template-columns:1fr}}
+@media (max-width:760px){.lineup-row{grid-template-columns:repeat(3,minmax(0,1fr))}.card{grid-template-columns:1fr}.panel{grid-template-columns:1fr;padding:22px}.lineup-row b{font-size:9px}.score{grid-template-columns:minmax(0,1fr) auto}.score .bar{grid-column:1 / -1;order:3}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <filter id="blur5" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <radialGradient id="eyeW" cx="40%" cy="32%" r="72%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE0EC"/></radialGradient>
+  <radialGradient id="pupil" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#3D5072"/><stop offset="1" stop-color="#0B1020"/></radialGradient>
+  <radialGradient id="pink" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFC4CC"/><stop offset=".55" stop-color="#F55364"/><stop offset="1" stop-color="#A21F35"/></radialGradient>
+  <radialGradient id="nFur" cx="35%" cy="26%" r="82%"><stop offset="0" stop-color="#6F8FC2"/><stop offset=".45" stop-color="#273C59"/><stop offset="1" stop-color="#0E1828"/></radialGradient>
+  <radialGradient id="nMuz" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#F4EFEA"/><stop offset="1" stop-color="#B9AFA4"/></radialGradient>
+  <linearGradient id="nBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8794"/><stop offset="1" stop-color="#D23A4E"/></linearGradient>
+
+  <!-- socle commun : corps du "rond", sans sourcils ni yeux ni bouche -->
+  <symbol id="roundBase" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="206" rx="58" ry="8" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <ellipse cx="100" cy="196" rx="30" ry="14" fill="url(#nFur)"/>
+    <circle cx="48" cy="56" r="20" fill="url(#nFur)"/><circle cx="152" cy="56" r="20" fill="url(#nFur)"/>
+    <circle cx="48" cy="58" r="10" fill="url(#pink)"/><circle cx="152" cy="58" r="10" fill="url(#pink)"/>
+    <circle cx="100" cy="124" r="78" fill="url(#nFur)"/>
+    <path d="M30 138 Q100 170 170 138 Q154 160 100 164 Q46 160 30 138Z" fill="url(#nBand)"/>
+    <ellipse cx="68" cy="88" rx="26" ry="12" transform="rotate(-28 68 88)" fill="#fff" opacity=".25" filter="url(#blur2)"/>
+    <ellipse cx="100" cy="148" rx="32" ry="22" fill="url(#nMuz)"/>
+  </symbol>
+
+  <!-- E1 · Neutre, pince-sans-rire (expression par défaut) -->
+  <symbol id="e1" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M64 92 L90 89" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <path d="M110 88 L136 93" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="78" cy="106" rx="14" ry="15" fill="url(#eyeW)"/><ellipse cx="122" cy="106" rx="14" ry="15" fill="url(#eyeW)"/>
+    <circle cx="81" cy="109" r="7.5" fill="url(#pupil)"/><circle cx="125" cy="109" r="7.5" fill="url(#pupil)"/>
+    <circle cx="84" cy="105" r="2.6" fill="#fff"/><circle cx="128" cy="105" r="2.6" fill="#fff"/>
+    <ellipse cx="100" cy="136" rx="12" ry="8" fill="url(#pink)"/><ellipse cx="96" cy="133" rx="4" ry="2" fill="#fff" opacity=".8"/>
+    <path d="M84 156 Q100 166 116 156" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- E2 · Content, fier -->
+  <symbol id="e2" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M62 92 Q78 78 94 90" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M106 90 Q122 78 138 92" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M66 104 Q78 92 90 104" stroke="#0E1828" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M110 104 Q122 92 134 104" stroke="#0E1828" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="100" cy="134" rx="11" ry="7" fill="url(#pink)"/>
+    <path d="M76 150 Q100 180 124 150 Q100 166 76 150Z" fill="#4A0E14"/>
+    <path d="M82 152 L88 160 L94 153 L100 161 L106 153 L112 160 L118 152 Q100 160 82 152Z" fill="#fff"/>
+  </symbol>
+
+  <!-- E3 · Désabusé, blasé -->
+  <symbol id="e3" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M64 96 L90 98" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <path d="M110 98 L136 96" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="78" cy="108" rx="14" ry="12" fill="url(#eyeW)"/><ellipse cx="122" cy="108" rx="14" ry="12" fill="url(#eyeW)"/>
+    <circle cx="74" cy="110" r="7" fill="url(#pupil)"/><circle cx="118" cy="110" r="7" fill="url(#pupil)"/>
+    <path d="M64 100 L92 102" stroke="url(#nFur)" stroke-width="10" stroke-linecap="round"/>
+    <path d="M108 102 L136 100" stroke="url(#nFur)" stroke-width="10" stroke-linecap="round"/>
+    <ellipse cx="100" cy="136" rx="12" ry="8" fill="url(#pink)"/>
+    <path d="M84 158 Q100 160 118 155" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- E4 · Chambreur, crocs sortis -->
+  <symbol id="e4" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M64 86 Q78 74 94 86" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M110 92 L136 92" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="78" cy="106" rx="14" ry="15" fill="url(#eyeW)"/><ellipse cx="122" cy="106" rx="14" ry="15" fill="url(#eyeW)"/>
+    <circle cx="84" cy="110" r="7.5" fill="url(#pupil)"/><circle cx="128" cy="110" r="7.5" fill="url(#pupil)"/>
+    <circle cx="87" cy="106" r="2.6" fill="#fff"/><circle cx="131" cy="106" r="2.6" fill="#fff"/>
+    <ellipse cx="100" cy="136" rx="12" ry="8" fill="url(#pink)"/>
+    <path d="M80 154 Q104 168 124 150" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M114 158 L118 168 L122 155Z" fill="#fff"/>
+  </symbol>
+
+  <!-- E5 · Surpris, impressionné -->
+  <symbol id="e5" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M60 86 Q78 72 96 86" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M104 86 Q122 72 140 86" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="78" cy="108" rx="17" ry="18" fill="url(#eyeW)"/><ellipse cx="122" cy="108" rx="17" ry="18" fill="url(#eyeW)"/>
+    <circle cx="80" cy="111" r="9" fill="url(#pupil)"/><circle cx="124" cy="111" r="9" fill="url(#pupil)"/>
+    <circle cx="84" cy="106" r="3" fill="#fff"/><circle cx="128" cy="106" r="3" fill="#fff"/>
+    <ellipse cx="100" cy="136" rx="11" ry="7" fill="url(#pink)"/>
+    <ellipse cx="100" cy="160" rx="10" ry="12" fill="#4A0E14"/><ellipse cx="97" cy="155" rx="3" ry="4" fill="#fff" opacity=".5"/>
+  </symbol>
+
+  <!-- E6 · Malicieux, complice (clin d'œil) -->
+  <symbol id="e6" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M64 90 L90 86" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <path d="M110 94 Q124 82 138 94" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M66 108 Q78 118 90 108" stroke="#0E1828" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="122" cy="106" rx="14" ry="15" fill="url(#eyeW)"/>
+    <circle cx="126" cy="109" r="7.5" fill="url(#pupil)"/><circle cx="129" cy="105" r="2.6" fill="#fff"/>
+    <ellipse cx="100" cy="136" rx="11" ry="7" fill="url(#pink)"/>
+    <path d="M82 155 Q106 170 124 150" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </symbol>
+</defs>
+</svg>
+
+<main class="wrap">
+  <header class="head">
+    <div>
+      <div class="eyebrow">TazQuiz · Taz, le rond</div>
+      <h1>Six expressions pour Taz<span>UN SEUL CORPS, UN JEU DE TÊTES</span></h1>
+    </div>
+    <div class="brief">
+      <p>« Le rond » est la forme retenue. Son visage change selon ce qui se passe dans la partie, sur la base du <b>catalogue de répliques</b> déjà validé par niveau et par situation.</p>
+      <p>Le corps ne bouge pas : seuls les sourcils, les yeux et la bouche changent d'une expression à l'autre, pour rester simple à animer.</p>
+    </div>
+  </header>
+
+  <section class="scene lineup" aria-label="Les six expressions côte à côte">
+    <div class="lineup-row" id="lineup"></div>
+  </section>
+
+  <div class="toolbar">
+    <p>Regarde chaque expression sur les deux thèmes du grand écran.</p>
+    <div class="seg" role="group" aria-label="Thème du grand écran">
+      <button type="button" id="th-dark" aria-pressed="true">BORNE FONCÉE</button>
+      <button type="button" id="th-light" aria-pressed="false">ÉCRAN CRÈME</button>
+    </div>
+  </div>
+
+  <section class="list" id="list" aria-label="Les expressions en détail"></section>
+
+  <section class="panel" aria-labelledby="t-avis">
+    <div>
+      <h2 id="t-avis">Ton avis</h2>
+      <p class="lead">Choisis ton expression préférée, ou dis-nous s'il en manque une (ex. « gêné », « endormi pendant l'attente »…).</p>
+      <p class="summary" id="summary"></p>
+    </div>
+    <form id="form" novalidate>
+      <label for="f-note">Ton commentaire ou une expression manquante
+        <textarea id="f-note" maxlength="600" placeholder="Ce qui te plaît, ce qui manque…"></textarea>
+      </label>
+      <div class="row">
+        <button type="submit" class="btn" id="f-send">ENVOYER MON AVIS</button>
+        <span class="status" id="f-status" role="status"></span>
+      </div>
+    </form>
+  </section>
+
+  <section class="results" aria-labelledby="t-res">
+    <h2 id="t-res">Ce qu'en pense l'équipe</h2>
+    <p class="lead" id="res-lead">Les résultats s'affichent une fois ton avis envoyé, pour ne pas influencer ton choix.</p>
+    <div id="res"></div>
+  </section>
+</main>
+
+<script>
+const VARS = [
+  { id:"e1", short:"Neutre", title:"Neutre, pince-sans-rire", kind:"Expression par défaut", freq:5, freqTxt:"défaut",
+    line:"Question 7. Je ne promets rien.",
+    keep:"Un sourcil légèrement plus haut que l'autre, bouche fermée et calme, regard droit. Son visage de base entre deux réactions.",
+    trig:"Tous les moments sans situation marquée : salle d'attente calme (S02), lancement niveau 1 (S06), questions niveau 1 (S07, S10).",
+    warn:"C'est l'expression la plus vue de la partie : elle doit rester agréable longtemps, pas juste « neutre par défaut »." },
+  { id:"e2", short:"Content", title:"Content, fier", kind:"Grand sourire, sourcils relevés", freq:3, freqTxt:"occasionnelle",
+    line:"100 % ! Je suis fier de vous.",
+    keep:"Yeux plissés de plaisir, grand sourire ouvert avec les dents, sourcils relevés.",
+    trig:"Tout le monde a juste (S11), vote quasi-unanime (S20), montée du podium (S26 à S28), clôture chaleureuse (S29).",
+    warn:"À ne pas confondre avec le sourire malicieux (E6) : ici c'est sincère, pas en coin." },
+  { id:"e3", short:"Désabusé", title:"Désabusé, blasé", kind:"Paupières lourdes, bouche plate", freq:3, freqTxt:"occasionnelle",
+    line:"Zéro bonne réponse. C'est un record. Pas le bon.",
+    keep:"Paupières mi-closes qui couvrent le haut des yeux, sourcils plats et bas, bouche presque droite, légèrement tombante.",
+    trig:"Personne n'a trouvé (S15), personne n'a répondu (S17), le même leader reste en tête (S22), fin de compte à rebours niveau 3 (S08).",
+    warn:"Doit rester bienveillant malgré le ton blasé : jamais un vrai air méprisant." },
+  { id:"e4", short:"Chambreur", title:"Chambreur, crocs sortis", kind:"Sourire en coin, un croc visible", freq:3, freqTxt:"occasionnelle",
+    line:"{x} % ont trouvé. Les autres… on a vu.",
+    keep:"Un sourcil relevé, regard en coin, sourire asymétrique avec un seul croc blanc visible au coin de la bouche.",
+    trig:"Grande majorité juste, minorité chambrée (S12), une seule personne isolée sur une réponse (S16), fausse reconnaissance piquante niveau 3 (S03).",
+    warn:"Toujours dirigé vers un groupe anonyme, jamais vers un pseudo affiché — cohérent avec la règle du personnage." },
+  { id:"e5", short:"Surpris", title:"Surpris, impressionné", kind:"Grands yeux, bouche en O", freq:2, freqTxt:"rare",
+    line:"Déjà ? Vous êtes sûrs de vous. C'est mignon.",
+    keep:"Sourcils très relevés, grands yeux ronds, petite bouche ouverte en O, aucune ironie dans le regard.",
+    trig:"Un nouveau leader surgit (S21), un joueur passe en boost (S23), tout le monde répond avant la fin du chrono (S09).",
+    warn:"À utiliser avec parcimonie pour garder son effet de surprise, justement." },
+  { id:"e6", short:"Malicieux", title:"Malicieux, complice", kind:"Clin d'œil, sourire en coin", freq:2, freqTxt:"rare",
+    line:"Je connais la réponse. Je ne dis rien. Mais je la connais.",
+    keep:"Un œil fermé en clin d'œil, l'autre ouvert et pétillant, sourire asymétrique fermé, sourcils asymétriques.",
+    trig:"Juste avant la révélation (S07 niveau 3), résultats de vote avec sous-entendu (S19), avant la dernière question (S25).",
+    warn:"Le clin d'œil doit se voir même en petit sur téléphone : vérifier le contraste de l'œil fermé." }
+];
+const byId = Object.fromEntries(VARS.map(v => [v.id, v]));
+const $ = id => document.getElementById(id);
+
+VARS.forEach((v, i) => {
+  const a = document.createElement("a"); a.href = "#card-" + v.id;
+  a.innerHTML = `<svg class="mascot" viewBox="0 0 200 220" role="img" aria-label="${v.title}"><use href="#${v.id}"/></svg><b>${i + 1} · ${v.short.toUpperCase()}</b>`;
+  $("lineup").appendChild(a);
+
+  const art = document.createElement("article"); art.className = "card"; art.id = "card-" + v.id;
+  art.innerHTML = `
+    <div class="scene stage">
+      <span class="num">${i + 1}</span>
+      <div class="bubble">${v.line}</div>
+      <svg class="mascot bob" viewBox="0 0 200 220" role="img" aria-label="${v.title}"><use href="#${v.id}"/></svg>
+    </div>
+    <div class="body">
+      <div class="top">
+        <div><div class="kind">${v.kind}</div><h3>${v.title}</h3></div>
+        <div class="gauge"><small>Fréquence d'apparition</small><div class="pips">${[1,2,3,4,5].map(n => `<i class="${n <= v.freq ? "on" : ""}"></i>`).join("")}</div><span>${v.freqTxt.toUpperCase()}</span></div>
+      </div>
+      <dl class="facts">
+        <div><dt>Traits du visage</dt><dd>${v.keep}</dd></div>
+        <div><dt>Déclencheurs</dt><dd>${v.trig}</dd></div>
+        <div class="warn"><dt>À surveiller</dt><dd>${v.warn}</dd></div>
+      </dl>
+      <button type="button" class="pick" id="fav-${v.id}" data-id="${v.id}" aria-pressed="false">Mon préféré <span class="cnt" hidden></span></button>
+    </div>`;
+  $("list").appendChild(art);
+});
+
+const stageTheme = t => {
+  document.body.classList.toggle("stage-light", t === "light");
+  $("th-dark").setAttribute("aria-pressed", t !== "light");
+  $("th-light").setAttribute("aria-pressed", t === "light");
+  try { localStorage.setItem("tq-stage", t); } catch (e) {}
+};
+$("th-dark").onclick = () => stageTheme("dark");
+$("th-light").onclick = () => stageTheme("light");
+try { if (localStorage.getItem("tq-stage") === "light") stageTheme("light"); } catch (e) {}
+
+let fav = null, votes = {}, myId = null, isOwner = false, db = null, userCap = null, sent = false;
+function renderPicks(){
+  VARS.forEach(v => {
+    $("fav-" + v.id).setAttribute("aria-pressed", fav === v.id);
+    $("card-" + v.id).classList.toggle("is-fav", fav === v.id);
+  });
+  $("summary").textContent = "Ton préféré : " + (fav ? byId[fav].title : "pas encore choisi");
+}
+$("list").addEventListener("click", e => {
+  const b = e.target.closest(".pick"); if (!b) return;
+  fav = fav === b.dataset.id ? null : b.dataset.id;
+  if (sent) status("Modification non envoyée.", "");
+  renderPicks();
+});
+function status(msg, cls){ const el = $("f-status"); el.textContent = msg; el.className = "status" + (cls ? " " + cls : ""); }
+
+async function renderResults(){
+  const entries = Object.entries(votes);
+  const show = sent || isOwner;
+  VARS.forEach(v => {
+    const n = entries.filter(([, x]) => x.fav === v.id).length;
+    const c = $("fav-" + v.id).querySelector(".cnt"); c.textContent = "♥ " + n; c.hidden = !show || !n;
+  });
+  const res = $("res"); res.innerHTML = "";
+  if (!show) return;
+  $("res-lead").textContent = entries.length ? entries.length + (entries.length > 1 ? " avis reçus." : " avis reçu.") : "Aucun avis pour l'instant.";
+  if (!entries.length) { const e = document.createElement("p"); e.className = "empty"; e.textContent = "Partage le lien de cette page à l'équipe projet : chaque avis apparaîtra ici en direct."; res.appendChild(e); return; }
+  const counts = VARS.map(v => ({ v, n: entries.filter(([, x]) => x.fav === v.id).length }));
+  const max = Math.max(1, ...counts.map(c => c.n));
+  const board = document.createElement("div"); board.className = "board";
+  counts.sort((a, b) => b.n - a.n).forEach(({ v, n }) => {
+    const row = document.createElement("div"); row.className = "score";
+    const name = document.createElement("span"); name.textContent = v.title;
+    const bar = document.createElement("div"); bar.className = "bar"; const i = document.createElement("i"); i.style.width = (n / max * 100) + "%"; bar.appendChild(i);
+    const s = document.createElement("span"); s.className = "n"; s.textContent = "♥ " + n;
+    row.append(name, bar, s); board.appendChild(row);
+  });
+  res.appendChild(board);
+  const ps = userCap ? await userCap.profiles(entries.map(([id]) => id)) : {};
+  const voices = document.createElement("div"); voices.className = "voices";
+  entries.sort((a, b) => (b[1].at || "").localeCompare(a[1].at || "")).forEach(([id, x]) => {
+    const card = document.createElement("div"); card.className = "voice";
+    const who = document.createElement("div"); who.className = "who"; who.textContent = (ps[id] && ps[id].name) || (id === myId ? "Toi" : "Un membre de l'équipe");
+    const meta = document.createElement("div"); meta.className = "meta"; meta.textContent = "♥ " + (x.fav ? (byId[x.fav]?.title || "?") : "aucun");
+    card.append(who, meta);
+    if (x.note) { const p = document.createElement("p"); p.textContent = x.note; card.appendChild(p); }
+    voices.appendChild(card);
+  });
+  res.appendChild(voices);
+}
+
+$("form").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!db || !myId) { status("L'enregistrement n'est pas disponible ici. Envoie ton choix à Paul directement.", "err"); return; }
+  if (!fav && !$("f-note").value.trim()) { status("Choisis une expression ou écris un mot.", "err"); return; }
+  $("f-send").disabled = true; status("Envoi…", "");
+  try {
+    await db.doc("votes/" + myId).set({ fav, note: $("f-note").value.trim().slice(0, 600), at: new Date().toISOString() });
+    sent = true; status("Avis envoyé. Tu peux le modifier quand tu veux.", "ok"); $("f-send").textContent = "METTRE À JOUR MON AVIS";
+  } catch (err) {
+    status(err && err.code === "invalid_argument" ? "Tu n'as pas les droits pour donner ton avis sur cette page. Demande à Paul un accès Contributeur." : "L'envoi a échoué. Réessaie dans un instant.", "err");
+  } finally { $("f-send").disabled = false; renderResults(); }
+});
+
+renderPicks();
+(async () => {
+  if (!window.claude || !window.claude.use) { status("Mode lecture : l'avis ne peut pas être enregistré ici.", ""); return; }
+  [db, userCap] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+  if (userCap) { myId = await userCap.id(); isOwner = await userCap.isOwner(); }
+  if (!db || !myId) { status("Connecte-toi à claude.ai pour donner ton avis.", ""); $("f-send").disabled = true; renderResults(); return; }
+  const mine = await db.doc("votes/" + myId).get().catch(() => null);
+  if (mine && mine.exists) {
+    const x = mine.data(); sent = true; fav = x.fav || null; $("f-note").value = x.note || "";
+    $("f-send").textContent = "METTRE À JOUR MON AVIS"; renderPicks();
+  }
+  db.collection("votes").onSnapshot(snap => {
+    votes = {}; snap.docs.forEach(d => { if (d.exists) votes[d.id] = d.data(); });
+    renderResults();
+  }, () => {});
+  renderResults();
+})();
+</script>
