@@ -17,6 +17,8 @@
   - **3 · Piquante** : elle parle partout et elle pique (toujours sans viser une personne).
 - **Variables :** `{pseudo}`, `{leader}`, `{n}` (nombre), `{q}` (nombre de questions), `{lettre}` (réponse A-F), `{x}` (pourcentage).
 - Un tiret « — » veut dire qu'elle se tait à ce niveau-là pour cette situation.
+- **Fréquence au niveau 3 :** par défaut, elle ne parle pas à chaque occurrence mais environ une fois sur trois, pour ne pas saturer une salle nombreuse (sauf S03, voir plus bas). Sur les situations qui reviennent très souvent (S21, S22), elle tourne sur plusieurs répliques simples ; les répliques marquées *(rare)* sortent moins souvent que les autres.
+- **S03 (fausse reconnaissance) :** tirée au hasard, environ une fois sur six par arrivée de joueur.
 
 ---
 
@@ -49,8 +51,10 @@
 |---|---|
 | 1 | — |
 | 2 | {pseudo} ! Ça faisait longtemps. Enfin je crois. |
+|   | Tiens, {pseudo}. On se connaît, non ? |
 | 3 | Encore toi, {pseudo} ? J'espère que tu vas faire mieux que la dernière fois. |
 |   | {pseudo}, je me souviens de toi. Enfin, surtout de ton score. |
+|   | {pseudo}… ça me revient. Ou pas. |
 
 ### S04 · La salle se remplit (palier : 10, 20, 50 joueurs…)
 | Niv. | Répliques |
@@ -76,7 +80,7 @@
 |---|---|
 | 1 | C'est parti ! {q} questions, répondez vite et bien. |
 | 2 | C'est parti ! Plus vous êtes rapides, plus vous marquez. Plus vous êtes lents, plus je commente. |
-| 3 | On commence. Rangez vos excuses, sortez vos pouces. |
+| 3 | C'est parti. Trop tard pour réviser, pas trop tard pour prier. |
 |   | {n} joueurs, {q} questions, zéro pitié. C'est parti. |
 
 ---
@@ -87,7 +91,9 @@
 | Niv. | Répliques |
 |---|---|
 | 1 | — |
-| 2 | Lisez bien. Ou pas. |
+| 2 | Lisez bien. |
+|   | Soyez attentifs. |
+|   | Attention, il y a peut-être un piège. |
 |   | Celle-là, je l'aime bien. |
 | 3 | Facile. Enfin, pour moi. |
 |   | Je connais la réponse. Je ne dis rien. Mais je la connais. |
@@ -99,7 +105,8 @@
 | 2 | Tic tac… |
 |   | Plus que quelques secondes ! |
 | 3 | Tic tac tic tac tic tac… |
-|   | Ceux qui hésitent encore : c'est maintenant ou jamais. Surtout jamais. |
+|   | Ceux qui hésitent encore : c'est maintenant ou jamais. |
+|   | Ceux qui hésitent encore : à ce stade, c'est rarement bon signe. |
 
 ### S09 · Tout le monde a répondu avant la fin
 | Niv. | Répliques |
@@ -111,7 +118,7 @@
 ### S10 · Question de classement affichée (variante de S07)
 | Niv. | Répliques |
 |---|---|
-| 1 | — |
+| 1 | Remettez dans l'ordre. |
 | 2 | Remettez tout dans l'ordre. Bon courage. |
 | 3 | L'ordre exact. Pas « à peu près ». Exact. |
 
@@ -209,29 +216,35 @@
 |---|---|
 | 1 | {leader} prend la tête ! |
 | 2 | {leader} passe en tête. Les autres, vous avez vu ça ? |
-| 3 | {leader} prend la tête. Profite, ça ne dure jamais. |
-|   | Nouveau leader : {leader}. L'ancien fait semblant de ne pas avoir vu. |
+| 3 | {leader} prend la tête. |
+|   | {leader} passe devant. |
+|   | Nouveau leader : {leader}. |
+|   | *(rare)* {leader} prend la tête. Profite, ça ne dure jamais. |
+|   | *(rare)* Nouveau leader : {leader}. L'ancien fait semblant de ne pas avoir vu. |
 
 ### S22 · Le leader garde la tête
 | Niv. | Répliques |
 |---|---|
 | 1 | {leader} reste en tête. |
 | 2 | {leader} tient bon. Quelqu'un va réagir ? |
-| 3 | Encore {leader}. Personne pour l'arrêter ? Vraiment personne ? |
+| 3 | Toujours {leader}. |
+|   | {leader}, encore en tête. |
+|   | {leader} tient toujours la première place. |
+|   | *(rare)* Encore {leader}. Personne pour l'arrêter ? Vraiment personne ? |
 
 ### S23 · Un joueur passe en boost (série)
 | Niv. | Répliques |
 |---|---|
 | 1 | {pseudo} est en boost ! |
 | 2 | {pseudo} enchaîne. Ça chauffe ! |
-| 3 | {pseudo} est en boost. On respire, on ne panique pas. Enfin, vous, si. |
+| 3 | {pseudo} est en boost. On respire, on ne panique pas. |
 
 ### S24 · Écart très serré entre le 1ᵉʳ et le 2ᵉ
 | Niv. | Répliques |
 |---|---|
 | 1 | Ça se joue à quelques points ! |
 | 2 | Quelques points d'écart en tête. Tout peut basculer. |
-| 3 | {n} points d'écart. Autant dire rien. Autant dire tout. |
+| 3 | {n} points d'écart. Ça va être serré. Les autres, vous attendez quoi ? |
 
 ---
 
@@ -277,7 +290,7 @@
 
 ## Points à valider
 
-1. **Les seuils** (100 %, ≥ 80 %, 40 à 60 %, ≤ 20 %, 0 %) : est-ce qu'on veut une case pour l'entre-deux (21 à 39 % et 61 à 79 %), ou est-ce qu'elle s'y tait ?
-2. **La fréquence** : au niveau 3, faut-il qu'elle parle *à chaque* arrivée de joueur, ou une sur trois pour ne pas saturer une salle de 80 personnes ?
-3. **S03 (fausse reconnaissance)** : à quelle fréquence ? Une chance sur dix par arrivée ?
-4. **Les répliques elles-mêmes** : barrez, réécrivez, ajoutez. Il en faudrait à terme 3 à 5 par case pour éviter la répétition sur une partie.
+1. ~~Les seuils (100 %, ≥ 80 %, 40 à 60 %, ≤ 20 %, 0 %)~~ — **validé**, pas de case supplémentaire pour l'entre-deux.
+2. ~~La fréquence au niveau 3~~ — **validé** : une personne sur trois, cf. règle ajoutée ci-dessus.
+3. ~~S03 (fausse reconnaissance)~~ — **validé** : une sur six, avec variantes.
+4. **Les répliques elles-mêmes** : premier tour de corrections passé (voir S06, S07, S08, S10, S21, S22, S23, S24, S03). Il en faudrait à terme 3 à 5 par case pour éviter la répétition sur une partie — à continuer d'enrichir.
