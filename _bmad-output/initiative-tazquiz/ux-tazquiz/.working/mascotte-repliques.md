@@ -1,8 +1,8 @@
-# Mascotte présentatrice : situations et répliques (V1, brouillon)
+# Mascotte présentatrice : situations et répliques (V1, validé)
 
-> Brouillon de travail rédigé par Claude (Sally), **à valider par l'équipe projet**.
+> Rédigé par Claude (Sally), **validé par l'équipe projet pour la V1** (2026-10-10).
 > Périmètre V1 : grand écran uniquement. Les vannes personnelles sur téléphone sont en V2.
-> Nom provisoire de la mascotte : Pépite.
+> Nom de la mascotte : Taz.
 
 ## Règles du personnage
 

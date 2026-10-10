@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TazQuiz Éditeur</title>
+<style>
+/* =====================================================================
+   ÉCRAN CLÉ : ÉDITEUR DE QUIZ (back-office animateur, navigateur desktop)
+   ---------------------------------------------------------------------
+   Gouverné par :
+   - Spec : CAP-2 (création/modification, bornes, refus des questions hors bornes,
+     scorée sans bonne réponse, temps limite absent) ; CAP-3 (privé par défaut,
+     partage, public = vu/animé/dupliqué par tous, modifié par créateur + partagés) ;
+     CAP-12 (classement 3 à 6 éléments) ; CAP-13 (vote = non scorée) ;
+     CAP-14 (couleur + forme + lettre A-F identiques partout) ; CAP-18 (dupliquer) ;
+     CAP-19 (aperçu grand écran + téléphone, deux thèmes).
+   - formats-de-question.md : choix simple 2-4 (Vrai/Faux préconfiguré),
+     choix multiple 2-6 (nb de bonnes réponses affichable), classement 3-6.
+   - Memlog : éditeur à la PowerPoint (vignettes gauche, flèches + glisser,
+     édition centre, réglages droite, aperçu) ; choisir le format d'abord ;
+     défauts 20 s + scorée ; temps limite calqué sur Kahoot ; énoncé ~200 car.,
+     réponse ~100 car., compteur visible ; enregistrement auto « Enregistré à HH:MM » ;
+     erreurs = message clair « ce qui ne va pas + comment corriger », point rouge
+     sur vignette, Lancer → « N questions à corriger » qui mène à la première ;
+     Lancer → écran de préparation ; verrou « En cours de modification par {prénom} »
+     libéré à la sortie de l'éditeur ; Partager = ajouter un collègue, Public, Copier
+     le lien (assumption memlog) ; Dupliquer conservé en V1 ; bibliothèque affiche
+     dernière modification + auteur.
+   - Direction visuelle : .working/direction-hybride-arcade.html (tokens « écran crème »
+     et « borne », couleurs/formes/lettres A-D, typo classique pour le texte,
+     pixel réservé au HUD / chrono / compteurs). Mascotte : Taz « le rond », E1 neutre.
+   - Polices pixel : hors ligne, repli monospace (pas de réseau).
+   ===================================================================== */
+:root{
+  --sans:"Aileron",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --pixel:"Press Start 2P","Courier New",monospace;
+  --pix2:"Silkscreen","Courier New",monospace;
+  /* Tasmane */
+  --navy:#273C59;--red:#F55364;
+  /* Thème clair « écran crème » (chrome de l'éditeur) */
+  --bg:#F3EDE1;--halo:#FBF7EF;--ink:#1B2B45;--soft:#5B6478;--dots:#E2D8C6;
+  --hud-lab:#C8243A;--accent:#005FA3;--card:#FFFFFF;--card-b:#273C59;--track:#F1EADC;
+  --shadow:#273C59;--ok:#007A55;--err:#C8243A;--line:#DCD3C2;
+  --A:#D42A40;--B:#0070BD;--C:#F2A900;--D:#00845E;
+  --onA:#FFFFFF;--onB:#FFFFFF;--onC:#1B2B45;--onD:#FFFFFF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E7E2DA;color:#1B2B45;font-family:var(--sans);padding:40px 24px 80px}
+.page{width:1440px;margin:0 auto}
+.intro{margin-bottom:28px}
+.intro small{display:block;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#80809B;margin-bottom:8px}
+.intro h1{font-size:38px;font-weight:900;letter-spacing:-.03em}
+.intro p{font-size:14px;color:#3A4257;margin-top:8px;max-width:900px;line-height:1.5}
+.capt{display:flex;align-items:baseline;gap:14px;margin:44px 0 12px}
+.capt b{font:13px var(--pixel);color:#fff;background:var(--navy);padding:8px 10px;border-radius:8px}
+.capt h2{font-size:22px;font-weight:900;letter-spacing:-.02em}
+.capt span{font-size:13px;color:#5B6478;margin-left:auto;max-width:640px;text-align:right;line-height:1.4}
+
+/* ===== Cadre navigateur ===== */
+.browser{width:1440px;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px #C9C1B3,0 30px 60px -36px rgba(27,43,69,.55)}
+.bchrome{height:40px;background:#E9E5DE;display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid #D5CEC2}
+.bchrome .dots{display:flex;gap:7px}.bchrome .dots i{width:12px;height:12px;border-radius:50%;background:#D0C8BB}
+.bchrome .url{flex:1;max-width:620px;margin:0 auto;height:26px;border-radius:8px;background:#fff;font-size:12px;color:#5B6478;display:flex;align-items:center;padding:0 12px}
+.vp{position:relative;height:880px;background:var(--bg);display:flex;flex-direction:column}
+
+/* ===== Barre du haut ===== */
+.top{height:64px;flex:none;background:#fff;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 20px}
+.back{font-size:13px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px;padding:8px 10px;border-radius:8px;text-decoration:none}
+.back:hover{background:var(--track)}
+.vsep{width:1px;height:28px;background:var(--line)}
+.ttl{display:flex;flex-direction:column;gap:3px}
+.ttl .t{font-size:18px;font-weight:900;letter-spacing:-.02em;padding:3px 8px;margin-left:-8px;border-radius:6px;border:1.5px dashed transparent;display:flex;align-items:center;gap:8px}
+.ttl .t:hover{border-color:var(--line)}
+.ttl .t svg{width:14px;height:14px;stroke:var(--soft);fill:none;stroke-width:2}
+.ttl small{font-size:12px;color:var(--soft)}
+.saved{font-size:12px;color:var(--soft);display:flex;align-items:center;gap:6px;margin-left:8px}
+.saved svg{width:14px;height:14px;stroke:var(--ok);fill:none;stroke-width:2.4}
+.sp{flex:1}
+.btn{font:700 13px var(--sans);color:var(--navy);background:#fff;border:2px solid var(--navy);border-radius:10px;padding:8px 14px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
+.btn.ghost{border-color:transparent}
+.btn.more{padding:8px 10px}
+.btn.primary{background:var(--navy);color:#fff;box-shadow:3px 3px 0 #0B1220;padding:9px 18px;font-size:14px}
+.btn.primary svg{fill:#FFC83D;stroke:none}
+.btn.blocked{background:#fff;color:var(--err);border-color:var(--err);box-shadow:3px 3px 0 rgba(200,36,58,.25);opacity:.92;padding:9px 16px;font-size:14px}
+.rdot{width:9px;height:9px;border-radius:50%;background:var(--err);display:inline-block;flex:none}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+.avatar.j{background:#00845E}.avatar.k{background:#0070BD}
+.note{position:absolute;z-index:20;background:#FFF6D6;border:1.5px solid #E2C46A;color:#5A4500;font-size:12px;line-height:1.4;padding:8px 10px;border-radius:8px;max-width:240px;box-shadow:0 6px 16px -8px rgba(0,0,0,.3)}
+.note::before{content:"Annotation";display:block;font:8px var(--pixel);letter-spacing:.06em;color:#8A6A00;margin-bottom:4px}
+
+/* ===== Colonnes ===== */
+.cols{flex:1;display:grid;grid-template-columns:256px 1fr 392px;min-height:0}
+.left{background:#FBF7EF;border-right:2px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.left h4,.right h4{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)}
+.left h4{padding:16px 16px 10px;display:flex;justify-content:space-between}
+.left h4 span{font:9px var(--pixel);color:var(--hud-lab);letter-spacing:0}
+.thumbs{flex:1;overflow:hidden;padding:0 12px;display:flex;flex-direction:column;gap:8px}
+.th{position:relative;display:grid;grid-template-columns:14px 1fr;gap:8px;background:#fff;border:2px solid var(--line);border-radius:12px;padding:9px 10px 9px 6px}
+.th .hdl{display:grid;grid-template-columns:repeat(2,3px);gap:3px;align-content:center;justify-content:center;cursor:grab}
+.th .hdl i{width:3px;height:3px;border-radius:50%;background:#A9A193}
+.th .hd{display:flex;align-items:center;gap:6px}
+.th .num{font:10px var(--pixel);color:var(--hud-lab)}
+.th .fi{width:16px;height:16px;color:var(--navy)}
+.th p{font-size:12px;font-weight:700;line-height:1.3;margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.th .meta{display:flex;align-items:center;gap:6px;margin-top:6px}
+.badge{font-size:10px;font-weight:800;letter-spacing:.03em;padding:2px 7px;border-radius:20px;background:#E4ECF5;color:var(--navy)}
+.badge.vote{background:#F3E4EE;color:#9C3F80}
+.th .tm{margin-left:auto;font:9px var(--pixel);color:var(--soft)}
+.th.cur{border-color:var(--navy);box-shadow:4px 4px 0 var(--shadow)}
+.th .arr{position:absolute;right:6px;top:6px;display:flex;gap:3px}
+.th .arr span{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;background:#fff}
+.th .arr svg{width:12px;height:12px;stroke:var(--navy);fill:none;stroke-width:2.4}
+.th .arr span.dis{opacity:.35}
+.th .edot{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;background:var(--err);border:2.5px solid #FBF7EF}
+.th.bad{border-color:#E9A3AE}
+.addq{margin:10px 12px 14px;border:2px dashed var(--navy);border-radius:12px;padding:12px;font-weight:800;font-size:13px;color:var(--navy);text-align:center;background:#fff}
+.addq.on{background:var(--navy);color:#fff;border-style:solid}
+
+.center{overflow:hidden;padding:22px 30px;display:flex;flex-direction:column;gap:16px}
+.kick{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.kick .num{font:11px var(--pixel);color:var(--hud-lab);letter-spacing:0}
+.lab{font-size:13px;font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline}
+.lab em{font-style:normal;font-weight:600;color:var(--soft);font-size:12px}
+.cnt{font:9px var(--pixel);color:var(--soft);white-space:nowrap}
+.inp{background:#fff;border:2px solid var(--navy);border-radius:12px;padding:12px 14px;font-size:20px;font-weight:800;line-height:1.25;letter-spacing:-.01em;display:flex;align-items:flex-end;gap:12px;min-height:76px}
+.inp span.v{flex:1}
+.inp.focus{box-shadow:0 0 0 4px rgba(0,95,163,.18);border-color:var(--accent)}
+.caret{display:inline-block;width:2px;height:22px;background:var(--accent);vertical-align:-3px;margin-left:1px}
+.drop{border:2px dashed #B9AE99;border-radius:12px;padding:14px;display:flex;align-items:center;gap:14px;color:var(--soft);font-size:13px;background:#FBF7EF}
+.drop svg{width:30px;height:30px;stroke:#A9A193;fill:none;stroke-width:1.6;flex:none}
+.drop b{color:var(--ink);display:block;font-size:14px;margin-bottom:2px}
+.drop u{color:var(--accent);font-weight:700}
+.alist{display:flex;flex-direction:column;gap:10px}
+.arow{display:grid;grid-template-columns:56px 1fr auto 30px;align-items:stretch;background:#fff;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.arow .L{background:var(--c);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:54px}
+.arow .L b{font:13px var(--pixel)}
+.arow .L svg{width:15px;height:15px;fill:var(--on);shape-rendering:crispEdges}
+.a{--c:var(--A);--on:var(--onA)}.b{--c:var(--B);--on:var(--onB)}.c{--c:var(--C);--on:var(--onC)}.d{--c:var(--D);--on:var(--onD)}
+.arow .f{display:flex;align-items:center;gap:12px;padding:0 14px;font-size:16px;font-weight:700}
+.arow .f span.v{flex:1}
+.arow .f span.ph{flex:1;color:#A9A193;font-weight:600}
+.good{display:flex;align-items:center;gap:7px;padding:0 14px;font-size:12px;font-weight:800;color:var(--soft);border-left:2px solid var(--line);white-space:nowrap}
+.good i{width:18px;height:18px;border-radius:50%;border:2px solid #A9A193;display:grid;place-items:center;flex:none}
+.good.on{color:var(--ok);background:#E6F3EE}
+.good.on i{border-color:var(--ok);background:var(--ok)}
+.good.on i::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.arow .x{display:grid;place-items:center;color:#A9A193;font-size:18px;border-left:2px solid var(--line)}
+.arow.good-row{border-color:var(--ok)}
+.arow .grip{display:flex;align-items:center;padding:0 12px;border-left:2px solid var(--line)}
+.arow .grip .hdl{display:grid;grid-template-columns:repeat(2,3px);gap:3px}.arow .grip i{width:3px;height:3px;border-radius:50%;background:#A9A193}
+.arow.err{border-color:var(--err);box-shadow:0 0 0 3px rgba(200,36,58,.14)}
+.hint{font-size:12px;color:var(--soft);display:flex;gap:8px;align-items:center}
+.addA{align-self:flex-start;font-size:13px;font-weight:800;color:var(--navy);border:2px dashed var(--navy);border-radius:10px;padding:8px 14px;background:#fff}
+.addA.dis{opacity:.4}
+.emsg{display:grid;grid-template-columns:22px 1fr;gap:10px;background:#FDECEE;border:2px solid var(--err);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;color:#7A1424}
+.emsg i{width:22px;height:22px;border-radius:50%;background:var(--err);color:#fff;font:bold 13px var(--sans);font-style:normal;display:grid;place-items:center}
+.emsg b{color:#5E0F1B}
+.emsg.sm{font-size:12px;padding:7px 10px;margin-top:-4px}
+.ordhelp{background:#E4ECF5;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.4;color:var(--navy)}
+
+.right{background:#fff;border-left:2px solid var(--line);overflow:hidden;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.blk{display:flex;flex-direction:column;gap:7px}
+.fmt{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:10px;padding:8px 10px;font-weight:800;font-size:14px}
+.fmt .fi{width:20px;height:20px;color:var(--navy)}
+.fmt u{margin-left:auto;font-size:12px;color:var(--accent);font-weight:700}
+.seg{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--navy);border-radius:10px;overflow:hidden}
+.seg span{text-align:center;padding:8px 6px;font-size:13px;font-weight:800;color:var(--navy)}
+.seg span.on{background:var(--navy);color:#fff}
+.seg.sm span{font-size:11px;padding:5px 4px}
+.sub{font-size:11.5px;color:var(--soft);line-height:1.4}
+.chips{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
+.chips span{text-align:center;padding:7px 0;border:1.5px solid var(--line);border-radius:7px;font:8px var(--pixel);color:var(--ink)}
+.chips span.on{background:#273C59;color:#FFC83D;border-color:#273C59;box-shadow:2px 2px 0 #0B1220}
+.acts{display:flex;gap:8px}
+.acts .btn{flex:1;justify-content:center;font-size:12px;padding:7px 8px}
+.acts .btn.del{color:var(--err);border-color:#E9A3AE}
+.hr{height:2px;background:var(--line);margin:2px -18px}
+.pvh{display:flex;justify-content:space-between;align-items:center}
+.pvsw{display:grid;grid-template-columns:1.4fr 1fr;gap:8px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;font-weight:700;line-height:1.35}
+.chk i{width:20px;height:20px;border-radius:5px;border:2px solid var(--navy);flex:none;display:grid;place-items:center}
+.chk.on i{background:var(--navy)}
+.chk.on i::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+
+/* ===== Aperçu grand écran (rendu jeu, 960x540 réduit) ===== */
+.pv{width:356px;height:200px;border-radius:8px;overflow:hidden;box-shadow:0 0 0 4px #23262E;position:relative;flex:none}
+.pv > .scr{transform:scale(.37083);transform-origin:0 0}
+.th-dark{--g-bg:#0B1220;--g-halo:#1A2A48;--g-ink:#F4F2EC;--g-soft:#A9B3C7;--g-dots:#1C2944;--g-lab:#FF5468;--g-val:#F4F2EC;--g-acc:#3FE0F0;
+  --g-qbg:#F6F1E7;--g-qb:#F6F1E7;--g-qink:#1B2B45;--g-kick:#C8243A;--g-sh:#000;--g-scan:rgba(0,0,0,.32);--g-vig:rgba(0,0,0,.55);
+  --g-tbg:#0B1220;--g-tb:#FFC83D;--g-tfg:#FFC83D;--g-tsh:#7A4200;
+  --gA:#FF5468;--gB:#2EA8FF;--gC:#FFC83D;--gD:#1FD19B;--gonA:#0B1220;--gonB:#0B1220;--gonC:#0B1220;--gonD:#0B1220;--g-tint:#0B1220;--g-tp:16%;--g-ans:#F4F2EC;
+  --g-card:#16223A;--g-cardb:#2C3D5E}
+.th-light{--g-bg:#F3EDE1;--g-halo:#FBF7EF;--g-ink:#1B2B45;--g-soft:#5B6478;--g-dots:#E2D8C6;--g-lab:#C8243A;--g-val:#1B2B45;--g-acc:#005FA3;
+  --g-qbg:#FFFFFF;--g-qb:#273C59;--g-qink:#1B2B45;--g-kick:#C8243A;--g-sh:#273C59;--g-scan:rgba(39,60,89,.055);--g-vig:rgba(39,60,89,.10);
+  --g-tbg:#273C59;--g-tb:#273C59;--g-tfg:#FFC83D;--g-tsh:#0B1220;
+  --gA:#D42A40;--gB:#0070BD;--gC:#F2A900;--gD:#00845E;--gonA:#FFFFFF;--gonB:#FFFFFF;--gonC:#1B2B45;--gonD:#FFFFFF;--g-tint:#FFFFFF;--g-tp:12%;--g-ans:#1B2B45;
+  --g-card:#FFFFFF;--g-cardb:#273C59}
+.scr{width:960px;height:540px;position:relative;overflow:hidden;color:var(--g-ink);font-family:var(--sans);background:radial-gradient(ellipse at 18% 75%,var(--g-halo) 0%,var(--g-bg) 60%)}
+.scr::before,.pscr::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--g-dots) 1.3px,transparent 1.4px);background-size:24px 24px}
+.scr::after,.pscr::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:30;background:repeating-linear-gradient(0deg,var(--g-scan) 0 1px,transparent 1px 3px),radial-gradient(ellipse at center,transparent 58%,var(--g-vig) 100%)}
+.hud{position:relative;z-index:2;height:44px;display:flex;justify-content:space-between;align-items:center;padding:14px 22px 0;font:11px var(--pixel)}
+.hud .l{color:var(--g-lab);margin-right:10px}.hud .vv{color:var(--g-val)}
+.logo-plate{background:#fff;height:28px;padding:6px 12px;border-radius:8px;display:inline-flex;align-items:center;box-shadow:3px 3px 0 var(--g-sh)}
+.logo-plate img{height:100%;width:auto;display:block}
+.ggrid{position:relative;z-index:2;display:grid;grid-template-columns:270px 1fr;height:496px}
+.stage{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 16px 22px}
+.stage svg{width:158px;height:174px;position:relative;z-index:2}
+.podium{width:200px;height:44px;margin-top:-24px;border-radius:50%/40%;background:linear-gradient(#2E4A78,#1B2B45);box-shadow:inset 0 3px 0 rgba(255,255,255,.14),4px 6px 0 var(--g-sh);display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px}
+.podium span{font:700 11px var(--pix2);color:#FFC83D;letter-spacing:.12em}
+.gmain{padding:14px 22px 18px 0;display:flex;flex-direction:column;gap:13px}
+.qrow{display:grid;grid-template-columns:1fr 150px;gap:16px}
+.qcard{background:var(--g-qbg);color:var(--g-qink);border:3px solid var(--g-qb);border-radius:20px;padding:16px 22px 18px;box-shadow:5px 5px 0 var(--g-sh);display:flex;flex-direction:column;justify-content:center}
+.qcard small{font:700 13px var(--pix2);color:var(--g-kick);letter-spacing:.05em}
+.qcard h3{font-size:34px;font-weight:900;letter-spacing:-.025em;line-height:1.08;margin-top:6px}
+.timer{background:var(--g-tbg);border:4px solid var(--g-tb);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;box-shadow:5px 5px 0 var(--g-sh)}
+.timer b{font:400 50px var(--pixel);color:var(--g-tfg);text-shadow:4px 4px 0 var(--g-tsh);line-height:1}
+.timer small{font:8px var(--pixel);color:var(--g-tfg);letter-spacing:.1em}
+.segs{display:flex;gap:3px}.segs i{width:8px;height:11px;background:var(--g-tfg)}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1}
+.ans{display:flex;align-items:center;gap:14px;border:3px solid var(--gc);border-radius:16px;padding-right:14px;overflow:hidden;font-size:22px;font-weight:800;line-height:1.15;color:var(--g-ans);background:color-mix(in srgb,var(--gc) var(--g-tp),var(--g-tint));box-shadow:4px 4px 0 var(--g-sh)}
+.ans .L{width:70px;align-self:stretch;background:var(--gc);color:var(--gon);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;flex:none}
+.ans .L span{font:18px var(--pixel)}
+.ans .L svg{width:22px;height:22px;fill:var(--gon);shape-rendering:crispEdges}
+.ga{--gc:var(--gA);--gon:var(--gonA)}.gb{--gc:var(--gB);--gon:var(--gonB)}.gc{--gc:var(--gC);--gon:var(--gonC)}.gd{--gc:var(--gD);--gon:var(--gonD)}
+.meter{display:flex;align-items:center;gap:12px;font:10px var(--pixel);color:var(--g-acc)}
+.meter .n{color:var(--g-val);font-size:13px}
+.meter .trk{flex:1;height:18px;border:3px solid var(--g-acc);border-radius:6px}
+
+/* ===== Aperçu téléphone ===== */
+.pvp{height:200px;display:flex;justify-content:center;align-items:flex-start;gap:16px}
+.phwrap{width:150px;height:310px;transform-origin:top center}
+.phone{width:300px;height:620px;border-radius:46px;background:#14161C;padding:10px;box-shadow:inset 0 0 0 2px #2C2F38;position:relative;transform:scale(.5);transform-origin:0 0}
+.phone::before{content:"";position:absolute;top:20px;left:50%;transform:translateX(-50%);width:86px;height:24px;border-radius:14px;background:#000;z-index:40}
+.pscr{width:280px;height:600px;border-radius:36px;overflow:hidden;position:relative;background:var(--g-bg);color:var(--g-ink);font-family:var(--sans)}
+.pin{position:relative;z-index:2}
+.sbar{height:46px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font:600 13px var(--sans)}
+.p-hud{display:flex;justify-content:space-between;align-items:center;padding:4px 16px 0;font:9px var(--pixel);color:var(--g-lab)}
+.p-hud b{font:400 22px var(--pixel);color:var(--g-tfg);background:var(--g-tbg);border:3px solid var(--g-tb);border-radius:10px;padding:6px 8px;box-shadow:3px 3px 0 var(--g-sh)}
+.p-q{margin:12px 16px 0;font-size:15px;font-weight:800;line-height:1.25;color:var(--g-ink)}
+.p-items{padding:12px 16px 0;display:flex;flex-direction:column;gap:8px}
+.p-it{display:flex;align-items:center;gap:10px;border:3px solid var(--gc);border-radius:12px;overflow:hidden;background:color-mix(in srgb,var(--gc) var(--g-tp),var(--g-tint));font-size:14px;font-weight:800;color:var(--g-ans);box-shadow:3px 3px 0 var(--g-sh);min-height:52px}
+.p-it .L{width:44px;align-self:stretch;background:var(--gc);color:var(--gon);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex:none}
+.p-it .L span{font:11px var(--pixel)}.p-it .L svg{width:13px;height:13px;fill:var(--gon);shape-rendering:crispEdges}
+.p-it .g{margin-left:auto;margin-right:12px;display:grid;grid-template-columns:repeat(2,4px);gap:4px}.p-it .g i{width:4px;height:4px;border-radius:50%;background:var(--g-soft)}
+.p-it.empty{border-style:dashed;background:transparent}
+.p-it.empty .t{color:var(--g-soft);font-style:italic;font-weight:600}
+.p-ok{margin:14px 16px 0;text-align:center;background:var(--g-qb);color:var(--g-bg);border-radius:12px;padding:12px;font-size:14px;font-weight:900;box-shadow:3px 3px 0 var(--g-sh)}
+.pvnote{font-size:11.5px;line-height:1.4;color:#7A1424;background:#FDECEE;border-radius:8px;padding:8px 10px;width:170px;align-self:center}
+
+/* ===== Overlays (section 3) ===== */
+.scrim{position:absolute;inset:0;background:rgba(27,43,69,.48);z-index:10}
+.ovl{position:absolute;z-index:11;top:100px;left:0;right:0;display:flex;justify-content:center;gap:28px;align-items:flex-start}
+.dlg{background:#fff;border:3px solid var(--navy);border-radius:20px;box-shadow:6px 6px 0 #0B1220;padding:22px 24px}
+.dlg h3{font-size:22px;font-weight:900;letter-spacing:-.02em}
+.dlg .lead{font-size:13px;color:var(--soft);margin-top:4px;line-height:1.4}
+.dlg .tag{font:8px var(--pixel);color:var(--hud-lab);letter-spacing:.06em;display:block;margin-bottom:8px}
+.fcards{display:grid;grid-template-columns:repeat(3,200px);gap:14px;margin-top:18px}
+.fc{border:2px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;background:#FBF7EF}
+.fc.hover{border-color:var(--navy);background:#fff;box-shadow:4px 4px 0 var(--shadow)}
+.fc .ill{height:76px;border-radius:10px;background:#fff;border:1.5px solid var(--line);display:flex;flex-direction:column;justify-content:center;gap:5px;padding:8px 12px}
+.fc .ill .r{display:flex;align-items:center;gap:6px;height:12px}
+.fc .ill .r i{width:12px;height:12px;border-radius:3px;background:var(--c);flex:none}
+.fc .ill .r s{display:block;height:6px;border-radius:3px;background:#E2D8C6;flex:1;text-decoration:none}
+.fc .ill .r em{width:10px;height:10px;border-radius:50%;border:2px solid #A9A193;flex:none}
+.fc .ill .r em.on{background:var(--ok);border-color:var(--ok)}
+.fc .ill .r em.sq{border-radius:3px}
+.fc .ill .r b{font:7px var(--pixel);color:var(--soft);width:10px}
+.fc h5{font-size:17px;font-weight:900;display:flex;align-items:center;gap:8px}
+.fc h5 svg{width:18px;height:18px;color:var(--navy)}
+.fc p{font-size:13px;line-height:1.4;color:#3A4257}
+.fc .vf{margin-top:auto;border-top:1.5px dashed var(--line);padding-top:10px;font-size:12px;color:var(--soft);line-height:1.35}
+.fc .vf b{display:inline-block;color:var(--navy);border:2px solid var(--navy);border-radius:8px;padding:4px 10px;font-size:12px;margin-bottom:5px}
+.dfoot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;font-size:12px;color:var(--soft)}
+.share{width:430px}
+.srch{margin-top:16px;position:relative}
+.srch .inp{min-height:0;font-size:15px;font-weight:600;padding:10px 12px;align-items:center}
+.srch .inp svg{width:16px;height:16px;stroke:var(--soft);fill:none;stroke-width:2}
+.ac{position:absolute;left:0;right:0;top:50px;background:#fff;border:2px solid var(--navy);border-radius:12px;box-shadow:4px 4px 0 var(--shadow);padding:6px;z-index:2}
+.ac div{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;font-size:14px;font-weight:700}
+.ac div.hl{background:#E4ECF5}
+.ac div small{margin-left:auto;font-size:12px;color:var(--accent);font-weight:800}
+.people{margin-top:72px;display:flex;flex-direction:column;gap:4px}
+.people h6,.pub h6{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-bottom:6px}
+.prow{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:14px;font-weight:700}
+.prow small{display:block;font-size:12px;font-weight:600;color:var(--soft)}
+.prow .rm{margin-left:auto;font-size:12px;color:var(--err);font-weight:700}
+.prow .own{margin-left:auto;font-size:12px;color:var(--soft);font-weight:700}
+.pub{margin-top:14px;border-top:2px solid var(--line);padding-top:14px}
+.sw{display:flex;align-items:flex-start;gap:12px}
+.sw .tg{width:40px;height:22px;border-radius:12px;background:#C9C1B3;position:relative;flex:none;margin-top:2px}
+.sw .tg::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+.sw b{font-size:14px}
+.sw p{font-size:12.5px;line-height:1.45;color:#3A4257;margin-top:3px}
+.sw p.st{color:var(--soft);font-weight:700}
+.linkrow{display:flex;gap:10px;align-items:center;margin-top:16px}
+.linkrow .btn{justify-content:center}
+.linkrow small{font-size:11.5px;color:var(--soft);line-height:1.35}
+
+/* ===== Encarts sous la section 3 ===== */
+.insets{display:grid;grid-template-columns:860px 1fr;gap:28px;margin-top:22px;align-items:start}
+.inset h5{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#5B6478;margin-bottom:10px}
+.mini{border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 0 0 1px #C9C1B3,0 18px 40px -28px rgba(27,43,69,.55)}
+.mini .top{height:58px}
+.lock{display:flex;align-items:center;gap:12px;background:#273C59;color:#fff;padding:12px 20px;font-size:14px;font-weight:600}
+.lock svg{width:20px;height:20px;stroke:#FFC83D;fill:none;stroke-width:2.2;flex:none}
+.lock b{font-weight:900}
+.ro{display:grid;grid-template-columns:200px 1fr;background:var(--bg);height:150px}
+.ro .l{background:#FBF7EF;border-right:2px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px}
+.ro .l i{display:block;height:34px;border-radius:8px;background:#fff;border:2px solid var(--line)}
+.ro .c{padding:16px 22px;display:flex;flex-direction:column;gap:10px;opacity:.75}
+.ro .c .inp{min-height:0;font-size:16px;border-color:var(--line);background:#F7F3EC}
+.ro .c .arow{opacity:.9}
+.mcard{background:#fff;border-radius:12px;box-shadow:0 0 0 1px #C9C1B3,0 18px 40px -28px rgba(27,43,69,.55);padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+</style></head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <!-- Formes de réponse : reprises de direction-hybride-arcade.html (A triangle, B losange, C cercle, D carré) -->
+  <symbol id="p-tri" viewBox="0 0 8 8"><path d="M3 0h2v2h1v2h1v2h1v2H0V6h1V4h1V2h1z"/></symbol>
+  <symbol id="p-dia" viewBox="0 0 8 8"><path d="M3 0h2v1h1v1h1v1h1v2H7v1H6v1H5v1H3V7H2V6H1V5H0V3h1V2h1V1h1z"/></symbol>
+  <symbol id="p-cir" viewBox="0 0 8 8"><path d="M2 0h4v1h1v1h1v4H7v1H6v1H2V7H1V6H0V2h1V1h1z"/></symbol>
+  <symbol id="p-sq" viewBox="0 0 8 8"><path d="M1 1h6v6H1z"/></symbol>
+  <!-- Icônes de format (éditeur) -->
+  <symbol id="f-simple" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="10" r="3.5" fill="currentColor"/></symbol>
+  <symbol id="f-multi" viewBox="0 0 20 20"><rect x="1.5" y="1.5" width="8" height="8" rx="2" fill="currentColor"/><rect x="10.5" y="10.5" width="8" height="8" rx="2" fill="currentColor"/><rect x="10.5" y="1.5" width="8" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="1.5" y="10.5" width="8" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="f-class" viewBox="0 0 20 20"><rect x="1" y="2" width="4" height="4" rx="1" fill="currentColor"/><rect x="7" y="3" width="12" height="2" rx="1" fill="currentColor"/><rect x="1" y="8" width="4" height="4" rx="1" fill="currentColor"/><rect x="7" y="9" width="9" height="2" rx="1" fill="currentColor"/><rect x="1" y="14" width="4" height="4" rx="1" fill="currentColor"/><rect x="7" y="15" width="6" height="2" rx="1" fill="currentColor"/></symbol>
+  <!-- Taz « le rond », E1 neutre (repris de taz-rond-expressions.html) -->
+  <filter id="blur5" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <radialGradient id="eyeW" cx="40%" cy="32%" r="72%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE0EC"/></radialGradient>
+  <radialGradient id="pupil" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#3D5072"/><stop offset="1" stop-color="#0B1020"/></radialGradient>
+  <radialGradient id="pink" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFC4CC"/><stop offset=".55" stop-color="#F55364"/><stop offset="1" stop-color="#A21F35"/></radialGradient>
+  <radialGradient id="nFur" cx="35%" cy="26%" r="82%"><stop offset="0" stop-color="#6F8FC2"/><stop offset=".45" stop-color="#273C59"/><stop offset="1" stop-color="#0E1828"/></radialGradient>
+  <radialGradient id="nMuz" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#F4EFEA"/><stop offset="1" stop-color="#B9AFA4"/></radialGradient>
+  <linearGradient id="nBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8794"/><stop offset="1" stop-color="#D23A4E"/></linearGradient>
+  <symbol id="taz" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="206" rx="58" ry="8" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <ellipse cx="100" cy="196" rx="30" ry="14" fill="url(#nFur)"/>
+    <circle cx="48" cy="56" r="20" fill="url(#nFur)"/><circle cx="152" cy="56" r="20" fill="url(#nFur)"/>
+    <circle cx="48" cy="58" r="10" fill="url(#pink)"/><circle cx="152" cy="58" r="10" fill="url(#pink)"/>
+    <circle cx="100" cy="124" r="78" fill="url(#nFur)"/>
+    <path d="M30 138 Q100 170 170 138 Q154 160 100 164 Q46 160 30 138Z" fill="url(#nBand)"/>
+    <ellipse cx="68" cy="88" rx="26" ry="12" transform="rotate(-28 68 88)" fill="#fff" opacity=".25" filter="url(#blur2)"/>
+    <ellipse cx="100" cy="148" rx="32" ry="22" fill="url(#nMuz)"/>
+    <path d="M64 92 L90 89" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <path d="M110 88 L136 93" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="78" cy="106" rx="14" ry="15" fill="url(#eyeW)"/><ellipse cx="122" cy="106" rx="14" ry="15" fill="url(#eyeW)"/>
+    <circle cx="81" cy="109" r="7.5" fill="url(#pupil)"/><circle cx="125" cy="109" r="7.5" fill="url(#pupil)"/>
+    <circle cx="84" cy="105" r="2.6" fill="#fff"/><circle cx="128" cy="105" r="2.6" fill="#fff"/>
+    <ellipse cx="100" cy="136" rx="12" ry="8" fill="url(#pink)"/><ellipse cx="96" cy="133" rx="4" ry="2" fill="#fff" opacity=".8"/>
+    <path d="M84 156 Q100 166 116 156" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </symbol>
+</defs>
+</svg>
+
+<div class="page">
+<div class="intro">
+  <small>TazQuiz · UX · écran clé</small>
+  <h1>Éditeur de quiz</h1>
+  <p>Back-office animateur, navigateur desktop. Éditeur à la PowerPoint : vignettes de questions à gauche, édition au centre, réglages et aperçu à droite. Le chrome de l'éditeur reprend le thème clair « écran crème » aux couleurs Tasmane ; l'aperçu montre le rendu de jeu (CAP-19). Exemple : quiz « Inauguration TazQuiz », 8 questions. Réponses d'exemple non vérifiées.</p>
+</div>
+
+<!-- =================================================================
+     SECTION 1 · ÉTAT NORMAL
+     ================================================================= -->
+<div class="capt"><b>1</b><h2>État normal</h2><span>Question 1 (choix simple) en cours d'édition, tout est valide. Aperçu : grand écran, thème foncé.</span></div>
+<div class="browser">
+  <div class="bchrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">tazquiz · Inauguration TazQuiz · éditeur</span></div>
+  <div class="vp">
+    <div class="top">
+      <a class="back" href="#">&larr; Bibliothèque</a>
+      <span class="vsep"></span>
+      <div class="ttl"><span class="t">Inauguration TazQuiz <svg viewBox="0 0 16 16"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg></span><small>Créé par Paul · dernière modification par Julie</small></div>
+      <span class="saved"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Enregistré à 18:42</span>
+      <span class="sp"></span>
+      <span class="btn ghost"><svg viewBox="0 0 16 16"><circle cx="12" cy="3.5" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12.5" r="2"/><path d="M6 7l4-2.5M6 9l4 2.5"/></svg>Partager</span>
+      <span class="btn ghost"><svg viewBox="0 0 16 16"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>Aperçu</span>
+      <span class="btn ghost more" title="Plus d'actions : Dupliquer le quiz">&middot;&middot;&middot;</span>
+      <span class="btn primary"><svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg>Lancer</span>
+      <span class="avatar">P</span>
+    </div>
+    <div class="note" style="left:290px;bottom:22px;max-width:420px">« · · · » contient Dupliquer le quiz. Lancer ouvre l'écran de préparation (thème, niveau de Taz, test son).</div>
+    <div class="cols">
+      <!-- Vignettes -->
+      <div class="left">
+        <h4>Questions <span>08</span></h4>
+        <div class="thumbs">
+          <div class="th cur"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">01</span><svg class="fi"><use href="#f-simple"/></svg></div>
+            <div class="arr"><span class="dis"><svg viewBox="0 0 12 12"><path d="M2 8l4-4 4 4"/></svg></span><span><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4"/></svg></span></div>
+            <p>En quelle année Tasmane a-t-elle été créée ?</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">20 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">02</span><svg class="fi"><use href="#f-simple"/></svg></div>
+            <p>Vrai ou faux : le séminaire d'été de Tasmane s'appelle la SummerSchool.</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">10 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">03</span><svg class="fi"><use href="#f-simple"/></svg></div>
+            <p>Quel format pour la prochaine SummerSchool ?</p>
+            <div class="meta"><span class="badge vote">Vote</span><span class="tm">30 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">04</span><svg class="fi"><use href="#f-class"/></svg></div>
+            <p>Classez ces étapes d'une mission, de la première à la dernière</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">45 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">05</span><svg class="fi"><use href="#f-multi"/></svg></div>
+            <p>Lesquels de ces rituels existent chez Tasmane ?</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">30 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">06</span><svg class="fi"><use href="#f-simple"/></svg></div>
+            <p>Combien de cafés sont bus chaque jour au bureau ?</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">20 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">07</span><svg class="fi"><use href="#f-multi"/></svg></div>
+            <p>Quelles animations aimeriez-vous à la prochaine soirée d'agence ?</p>
+            <div class="meta"><span class="badge vote">Vote</span><span class="tm">30 S</span></div></div></div>
+        </div>
+        <div class="addq">+ Ajouter une question</div>
+      </div>
+
+      <!-- Édition -->
+      <div class="center">
+        <div class="kick"><span class="num">01</span> Question 1 sur 8 · Choix simple</div>
+        <div>
+          <div class="lab">Énoncé <span class="cnt">45 / 200</span></div>
+          <div class="inp focus"><span class="v">En quelle année Tasmane a-t-elle été créée ?<span class="caret"></span></span></div>
+        </div>
+        <div class="drop"><svg viewBox="0 0 30 30"><rect x="3" y="5" width="24" height="20" rx="3"/><circle cx="11" cy="12" r="2.5"/><path d="M3 22l7-6 5 4 4-3 8 6"/></svg><div><b>Ajouter une image (facultatif)</b>Glissez une image ici ou <u>parcourez vos fichiers</u></div></div>
+        <div>
+          <div class="lab">Réponses <em>Choix simple : 2 à 4 réponses, une seule bonne réponse</em></div>
+          <div class="alist">
+            <div class="arow a"><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="f"><span class="v">2008</span><span class="cnt">4 / 100</span></span><span class="good"><i></i>Bonne réponse</span><span class="x">&times;</span></div>
+            <div class="arow b good-row"><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="f"><span class="v">2011</span><span class="cnt">4 / 100</span></span><span class="good on"><i></i>Bonne réponse</span><span class="x">&times;</span></div>
+            <div class="arow c"><span class="L"><b>C</b><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span><span class="f"><span class="v">2014</span><span class="cnt">4 / 100</span></span><span class="good"><i></i>Bonne réponse</span><span class="x">&times;</span></div>
+            <div class="arow d"><span class="L"><b>D</b><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span><span class="f"><span class="v">Bien avant l'invention du PowerPoint</span><span class="cnt">35 / 100</span></span><span class="good"><i></i>Bonne réponse</span><span class="x">&times;</span></div>
+          </div>
+        </div>
+        <div class="hint"><span class="addA dis">+ Ajouter une réponse</span>4 réponses sur 4 au maximum pour un choix simple.</div>
+      </div>
+
+      <!-- Réglages + aperçu -->
+      <div class="right">
+        <div class="blk"><h4>Format</h4><div class="fmt"><svg class="fi"><use href="#f-simple"/></svg>Choix simple<u>Changer</u></div></div>
+        <div class="blk"><h4>Type de question</h4><div class="seg"><span class="on">Scorée</span><span>Vote</span></div><span class="sub">Scorée : rapporte des points. Vote : aucun point, le grand écran montre la répartition.</span></div>
+        <div class="blk"><h4>Temps limite</h4><div class="chips"><span>5</span><span>10</span><span class="on">20</span><span>30</span><span>45</span><span>60</span><span>90</span><span>120</span><span>240</span></div><span class="sub">En secondes.</span></div>
+        <div class="acts"><span class="btn"><svg viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/></svg>Dupliquer</span><span class="btn del"><svg viewBox="0 0 16 16"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.8 9.5h6.4L12 4"/></svg>Supprimer</span></div>
+        <div class="hr"></div>
+        <div class="blk">
+          <div class="pvh"><h4>Aperçu</h4></div>
+          <div class="pvsw"><div class="seg sm"><span class="on">Grand écran</span><span>Téléphone</span></div><div class="seg sm"><span>Clair</span><span class="on">Foncé</span></div></div>
+        </div>
+        <div class="pv"><div class="scr th-dark">
+          <div class="hud"><div><span class="l">QUESTION</span><span class="vv">01/08</span></div><span class="logo-plate"><img src="../imports/tasmane-logo.png" alt="Tasmane"></span><div><span class="l">HI-SCORE</span><span class="vv">----</span></div></div>
+          <div class="ggrid"><div class="stage"><svg viewBox="0 0 200 220"><use href="#taz" width="200" height="220"/></svg><div class="podium"><span>TAZQUIZ LIVE</span></div></div>
+          <div class="gmain">
+            <div class="qrow"><div class="qcard"><small>SCORÉE</small><h3>En quelle année Tasmane a-t-elle été créée ?</h3></div><div class="timer"><b>20</b><div class="segs"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><small>SECONDES</small></div></div>
+            <div class="answers"><div class="ans ga"><span class="L"><span>A</span><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span>2008</div><div class="ans gb"><span class="L"><span>B</span><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span>2011</div><div class="ans gc"><span class="L"><span>C</span><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span>2014</div><div class="ans gd"><span class="L"><span>D</span><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span>Bien avant l'invention du PowerPoint</div></div>
+            <div class="meter">RÉPONSES <span class="n">0/0</span><span class="trk"></span></div>
+          </div></div>
+        </div></div>
+        <span class="sub">Rendu identique à la partie (CAP-19). La bonne réponse n'apparaît pas dans l'aperçu.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================================================================
+     SECTION 2 · QUESTIONS À CORRIGER
+     ================================================================= -->
+<div class="capt"><b>2</b><h2>Questions à corriger</h2><span>Question 4 (classement) incomplète : 2 éléments au lieu de 3 à 6, dont un vide. La question 5 est aussi en erreur. Le quiz s'enregistre mais ne se lance pas. Aperçu : téléphone, thème clair.</span></div>
+<div class="browser">
+  <div class="bchrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">tazquiz · Inauguration TazQuiz · éditeur</span></div>
+  <div class="vp">
+    <div class="top">
+      <a class="back" href="#">&larr; Bibliothèque</a>
+      <span class="vsep"></span>
+      <div class="ttl"><span class="t">Inauguration TazQuiz <svg viewBox="0 0 16 16"><path d="M10.5 2.5l3 3L6 13H3v-3z"/></svg></span><small>Créé par Paul · dernière modification par Julie</small></div>
+      <span class="saved"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Enregistré à 18:47</span>
+      <span class="sp"></span>
+      <span class="btn ghost"><svg viewBox="0 0 16 16"><circle cx="12" cy="3.5" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="12.5" r="2"/><path d="M6 7l4-2.5M6 9l4 2.5"/></svg>Partager</span>
+      <span class="btn ghost"><svg viewBox="0 0 16 16"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/></svg>Aperçu</span>
+      <span class="btn ghost more">&middot;&middot;&middot;</span>
+      <span class="btn blocked"><span class="rdot"></span>2 questions à corriger</span>
+      <span class="avatar">P</span>
+    </div>
+    <div class="note" style="left:290px;bottom:22px;max-width:420px">Bouton grisé mais cliquable : un clic ouvre la première question à corriger (ici la 4) et place le curseur sur le premier champ en erreur.</div>
+    <div class="cols">
+      <div class="left">
+        <h4>Questions <span>08</span></h4>
+        <div class="thumbs">
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">01</span><svg class="fi"><use href="#f-simple"/></svg></div>
+            <p>En quelle année Tasmane a-t-elle été créée ?</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">20 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">02</span><svg class="fi"><use href="#f-simple"/></svg></div>
+            <p>Vrai ou faux : le séminaire d'été de Tasmane s'appelle la SummerSchool.</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">10 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">03</span><svg class="fi"><use href="#f-simple"/></svg></div>
+            <p>Quel format pour la prochaine SummerSchool ?</p>
+            <div class="meta"><span class="badge vote">Vote</span><span class="tm">30 S</span></div></div></div>
+          <div class="th cur bad"><span class="edot"></span><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">04</span><svg class="fi"><use href="#f-class"/></svg></div>
+            <div class="arr"><span><svg viewBox="0 0 12 12"><path d="M2 8l4-4 4 4"/></svg></span><span><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4"/></svg></span></div>
+            <p>Classez ces étapes d'une mission, de la première à la dernière</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">45 S</span></div></div></div>
+          <div class="th bad"><span class="edot"></span><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">05</span><svg class="fi"><use href="#f-multi"/></svg></div>
+            <p>Lesquels de ces rituels existent chez Tasmane ?</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">30 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">06</span><svg class="fi"><use href="#f-simple"/></svg></div>
+            <p>Combien de cafés sont bus chaque jour au bureau ?</p>
+            <div class="meta"><span class="badge">Scorée</span><span class="tm">20 S</span></div></div></div>
+          <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div>
+            <div class="hd"><span class="num">07</span><svg class="fi"><use href="#f-multi"/></svg></div>
+            <p>Quelles animations aimeriez-vous à la prochaine soirée d'agence ?</p>
+            <div class="meta"><span class="badge vote">Vote</span><span class="tm">30 S</span></div></div></div>
+        </div>
+        <div class="addq">+ Ajouter une question</div>
+      </div>
+
+      <div class="center">
+        <div class="kick"><span class="num">04</span> Question 4 sur 8 · Classement</div>
+        <div>
+          <div class="lab">Énoncé <span class="cnt">62 / 200</span></div>
+          <div class="inp"><span class="v">Classez ces étapes d'une mission, de la première à la dernière</span></div>
+        </div>
+        <div class="drop"><svg viewBox="0 0 30 30"><rect x="3" y="5" width="24" height="20" rx="3"/><circle cx="11" cy="12" r="2.5"/><path d="M3 22l7-6 5 4 4-3 8 6"/></svg><div><b>Ajouter une image (facultatif)</b>Glissez une image ici ou <u>parcourez vos fichiers</u></div></div>
+        <div>
+          <div class="lab">Éléments à classer <em>Classement : 3 à 6 éléments</em></div>
+          <div class="ordhelp">Saisissez les éléments <b>dans le bon ordre</b>, du premier au dernier. Ils seront mélangés pour les joueurs.</div>
+        </div>
+        <div class="alist">
+          <div class="arow a" style="grid-template-columns:56px 1fr auto 30px"><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="f"><span class="v">Cadrage avec le client</span><span class="cnt">22 / 100</span></span><span class="grip"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span></span><span class="x">&times;</span></div>
+          <div class="arow b err" style="grid-template-columns:56px 1fr auto 30px"><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="f"><span class="ph">Élément 2</span><span class="cnt">0 / 100</span></span><span class="grip"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span></span><span class="x">&times;</span></div>
+          <div class="emsg sm"><i>!</i><span><b>Cet élément est vide.</b> Écrivez son texte, ou supprimez-le avec la croix.</span></div>
+        </div>
+        <div class="emsg"><i>!</i><span><b>Il manque au moins un élément : une question de classement en demande de 3 à 6, celle-ci n'en a que 2.</b><br>Ajoutez un élément avec « + Ajouter un élément » ci-dessous, ou changez le format de la question dans les réglages à droite.</span></div>
+        <div class="hint"><span class="addA">+ Ajouter un élément</span>2 éléments sur 6 au maximum.</div>
+      </div>
+
+      <div class="right">
+        <div class="blk"><h4>Format</h4><div class="fmt"><svg class="fi"><use href="#f-class"/></svg>Classement<u>Changer</u></div></div>
+        <div class="blk"><h4>Type de question</h4><div class="seg"><span class="on">Scorée</span><span>Vote</span></div><span class="sub">Scorée : points selon l'ordre trouvé. Vote : le grand écran montre le rang moyen de chaque élément.</span></div>
+        <div class="blk"><h4>Temps limite</h4><div class="chips"><span>5</span><span>10</span><span>20</span><span>30</span><span class="on">45</span><span>60</span><span>90</span><span>120</span><span>240</span></div><span class="sub">En secondes.</span></div>
+        <div class="acts"><span class="btn"><svg viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 009.5 2h-6A1.5 1.5 0 002 3.5v6A1.5 1.5 0 003.5 11H5"/></svg>Dupliquer</span><span class="btn del"><svg viewBox="0 0 16 16"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.8 9.5h6.4L12 4"/></svg>Supprimer</span></div>
+        <div class="hr"></div>
+        <div class="blk">
+          <div class="pvh"><h4>Aperçu</h4></div>
+          <div class="pvsw"><div class="seg sm"><span>Grand écran</span><span class="on">Téléphone</span></div><div class="seg sm"><span class="on">Clair</span><span>Foncé</span></div></div>
+        </div>
+        <div class="pvp">
+          <div class="phwrap"><div class="phone"><div class="pscr th-light"><div class="pin">
+            <div class="sbar"><span>18:47</span><span>4G</span></div>
+            <div class="p-hud"><span>Q 04/08</span><b>45</b></div>
+            <div class="p-q">Classez ces étapes d'une mission, de la première à la dernière</div>
+            <div class="p-items">
+              <div class="p-it gb empty"><span class="L"><span>B</span><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">(vide)</span><span class="g"><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+              <div class="p-it ga"><span class="L"><span>A</span><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span>Cadrage avec le client<span class="g"><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+            </div>
+            <div class="p-ok">Valider mon ordre</div>
+          </div></div></div></div>
+          <div class="pvnote"><b>Aperçu incomplet.</b> La question n'est pas jouable en l'état : corrigez-la pour voir son rendu final.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================================================================
+     SECTION 3 · NOUVELLE QUESTION + PARTAGE
+     ================================================================= -->
+<div class="capt"><b>3</b><h2>Nouvelle question + partage</h2><span>(a) Choix du format après « + Ajouter une question ». (b) Panneau Partager. Les deux panneaux sont montrés côte à côte pour la planche ; en vrai, un seul s'ouvre à la fois.</span></div>
+<div class="browser">
+  <div class="bchrome"><span class="dots"><i></i><i></i><i></i></span><span class="url">tazquiz · Inauguration TazQuiz · éditeur</span></div>
+  <div class="vp">
+    <div class="top">
+      <a class="back" href="#">&larr; Bibliothèque</a>
+      <span class="vsep"></span>
+      <div class="ttl"><span class="t">Inauguration TazQuiz</span><small>Créé par Paul · dernière modification par Julie</small></div>
+      <span class="saved"><svg viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></svg>Enregistré à 18:51</span>
+      <span class="sp"></span>
+      <span class="btn">Partager</span><span class="btn ghost">Aperçu</span><span class="btn ghost more">&middot;&middot;&middot;</span>
+      <span class="btn primary"><svg viewBox="0 0 16 16"><path d="M4 2l10 6-10 6z"/></svg>Lancer</span><span class="avatar">P</span>
+    </div>
+    <div class="cols">
+      <div class="left"><h4>Questions <span>08</span></h4><div class="thumbs">
+        <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div><div class="hd"><span class="num">06</span><svg class="fi"><use href="#f-simple"/></svg></div><p>Combien de cafés sont bus chaque jour au bureau ?</p><div class="meta"><span class="badge">Scorée</span><span class="tm">20 S</span></div></div></div>
+        <div class="th"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div><div class="hd"><span class="num">07</span><svg class="fi"><use href="#f-multi"/></svg></div><p>Quelles animations aimeriez-vous à la prochaine soirée d'agence ?</p><div class="meta"><span class="badge vote">Vote</span><span class="tm">30 S</span></div></div></div>
+        <div class="th cur"><span class="hdl"><i></i><i></i><i></i><i></i><i></i><i></i></span><div><div class="hd"><span class="num">08</span><svg class="fi"><use href="#f-class"/></svg></div><p>Classez ces outils, du plus au moins utilisé chez Tasmane</p><div class="meta"><span class="badge vote">Vote</span><span class="tm">60 S</span></div></div></div>
+      </div><div class="addq on">+ Ajouter une question</div></div>
+      <div class="center"><div class="kick"><span class="num">08</span> Question 8 sur 8 · Classement</div><div class="inp"><span class="v">Classez ces outils, du plus au moins utilisé chez Tasmane</span></div></div>
+      <div class="right"></div>
+    </div>
+    <div class="scrim"></div>
+    <div class="ovl">
+      <!-- (a) Choix du format -->
+      <div class="dlg">
+        <span class="tag">(A) APRÈS « + AJOUTER UNE QUESTION »</span>
+        <h3>Nouvelle question</h3>
+        <p class="lead">Choisissez d'abord le format. Vous compléterez la question ensuite.</p>
+        <div class="fcards">
+          <div class="fc hover">
+            <div class="ill"><span class="r a"><i></i><s></s><em></em></span><span class="r b"><i></i><s></s><em class="on"></em></span><span class="r c"><i></i><s></s><em></em></span><span class="r d"><i></i><s></s><em></em></span></div>
+            <h5><svg><use href="#f-simple"/></svg>Choix simple</h5>
+            <p>Une seule bonne réponse parmi 2 à 4.</p>
+            <div class="vf"><b>Vrai / Faux</b><br>Raccourci : 2 réponses « Vrai » et « Faux » déjà remplies.</div>
+          </div>
+          <div class="fc">
+            <div class="ill"><span class="r a"><i></i><s></s><em class="sq on"></em></span><span class="r b"><i></i><s></s><em class="sq"></em></span><span class="r c"><i></i><s></s><em class="sq on"></em></span><span class="r d"><i></i><s></s><em class="sq"></em></span></div>
+            <h5><svg><use href="#f-multi"/></svg>Choix multiple</h5>
+            <p>Une ou plusieurs bonnes réponses parmi 2 à 6.</p>
+          </div>
+          <div class="fc">
+            <div class="ill"><span class="r c"><b>1</b><i></i><s></s></span><span class="r a"><b>2</b><i></i><s></s></span><span class="r d"><b>3</b><i></i><s></s></span><span class="r b"><b>4</b><i></i><s></s></span></div>
+            <h5><svg><use href="#f-class"/></svg>Classement</h5>
+            <p>Remettre 3 à 6 éléments dans le bon ordre.</p>
+          </div>
+        </div>
+        <div class="dfoot"><span>La nouvelle question démarre en scorée, 20 s. Modifiable ensuite.</span><span class="btn ghost">Annuler</span></div>
+      </div>
+
+      <!-- (b) Partager -->
+      <div class="dlg share">
+        <span class="tag">(B) BOUTON PARTAGER</span>
+        <h3>Partager « Inauguration TazQuiz »</h3>
+        <p class="lead">Privé par défaut : seuls vous et les personnes ajoutées le voient, le modifient (chacun son tour) et l'animent.</p>
+        <div class="srch">
+          <div class="inp"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="5"/><path d="M11 11l3.5 3.5"/></svg><span class="v">Jul<span class="caret" style="height:16px"></span></span></div>
+          <div class="ac"><div class="hl"><span class="avatar j" style="width:28px;height:28px;font-size:12px">J</span>Julie M.<small>Ajouter</small></div></div>
+        </div>
+        <div class="people">
+          <h6>Personnes ayant accès</h6>
+          <div class="prow"><span class="avatar" style="width:30px;height:30px">P</span><span>Paul C. (vous)</span><span class="own">Créateur</span></div>
+          <div class="prow"><span class="avatar k" style="width:30px;height:30px">K</span><span>Karim B.<small>Peut modifier et animer</small></span><span class="rm">Retirer</span></div>
+        </div>
+        <div class="pub">
+          <div class="sw"><span class="tg"></span><div><b>Public</b><p class="st">Désactivé</p><p>Si vous l'activez, le quiz est visible, animable et duplicable par tout Tasmane. Il reste modifiable seulement par vous et les personnes ajoutées.</p></div></div>
+        </div>
+        <div class="linkrow"><span class="btn primary" style="box-shadow:3px 3px 0 #0B1220"><svg viewBox="0 0 16 16" style="fill:none;stroke:#FFC83D;stroke-width:2"><path d="M6.5 9.5l3-3M7 4.5l1.5-1.5a2.8 2.8 0 014 4L11 8.5M9 11.5L7.5 13a2.8 2.8 0 01-4-4L5 7.5"/></svg>Copier le lien</span><small>Le lien ouvre directement l'éditeur pour les personnes ayant accès. Les autres voient un message d'accès refusé.</small></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="insets">
+  <div class="inset">
+    <h5>Encart · ce que voit un collègue quand Julie modifie le quiz</h5>
+    <div class="mini">
+      <div class="top">
+        <a class="back" href="#">&larr; Bibliothèque</a><span class="vsep"></span>
+        <div class="ttl"><span class="t">Inauguration TazQuiz</span><small>Créé par Paul · dernière modification par Julie</small></div>
+        <span class="sp"></span>
+        <span class="btn ghost">Aperçu</span><span class="btn ghost">Dupliquer</span><span class="avatar k">K</span>
+      </div>
+      <div class="lock"><svg viewBox="0 0 20 20"><rect x="4" y="9" width="12" height="9" rx="2"/><path d="M7 9V6.5a3 3 0 016 0V9"/></svg><span><b>En cours de modification par Julie</b> — lecture seule. Le quiz se libère dès qu'elle quitte l'éditeur.</span></div>
+      <div class="ro"><div class="l"><i></i><i></i><i></i></div><div class="c"><div class="inp"><span class="v">En quelle année Tasmane a-t-elle été créée ?</span></div><div class="arow a" style="grid-template-columns:56px 1fr"><span class="L" style="min-height:40px"><b>A</b></span><span class="f">2008</span></div></div></div>
+    </div>
+  </div>
+  <div class="inset">
+    <h5>Encart · réglage propre au choix multiple (question 5)</h5>
+    <div class="mcard">
+      <div class="blk"><h4 style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft)">Format</h4><div class="fmt"><svg class="fi"><use href="#f-multi"/></svg>Choix multiple<u>Changer</u></div></div>
+      <div class="seg"><span class="on">Scorée</span><span>Vote</span></div>
+      <label class="chk on"><i></i><span>Afficher le nombre de bonnes réponses attendues<br><span class="sub" style="font-weight:600">Les joueurs verront « 2 bonnes réponses » au-dessus des choix.</span></span></label>
+    </div>
+  </div>
+</div>
+
+</div>
+</body></html>

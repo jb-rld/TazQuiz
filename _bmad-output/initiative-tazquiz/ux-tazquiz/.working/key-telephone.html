@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TazQuiz Téléphone joueur</title>
+<style>
+/* =====================================================================
+   ÉCRANS CLÉS : TÉLÉPHONE DU JOUEUR (360 px de large, thèmes foncé et clair)
+   ---------------------------------------------------------------------
+   Gouverné par :
+   - Spec : CAP-4 (PIN + QR, PIN erroné / partie terminée = message clair) ;
+     CAP-5 (pseudo sans compte, mention RGPD, unique, filtré, retardataire à 0 pt,
+     201e joueur = « partie complète ») ; CAP-7 (barème vitesse + série, boost dès la
+     2e bonne réponse, inchangé après un vote) ; CAP-8 (podium puis rang final, PIN
+     invalide après la fin) ; CAP-11 (reconnexion auto, score et série gardés) ;
+     CAP-12 (classement, ordre initial jamais le bon) ; CAP-14 (couleur + forme +
+     lettre A-F identiques partout) ; CAP-15 (retour par format, points, score, rang,
+     joueur juste devant + écart, message de tête pour le 1er) ; CAP-23 (révélation
+     fin de chrono ou tous répondu) ; CAP-24 (énoncé et toutes les réponses en entier
+     sur 360 px, chrono visible ; multiple/classement non confirmé = pas de réponse).
+   - formats-de-question.md (saisie, confirmation, retours), bareme.md (exemples chiffrés).
+   - Memlog : téléphone identique sur place / à distance ; énoncé en petit en haut,
+     réponses dessous ; top 5 JAMAIS sur le téléphone ; écran sobre « réponse
+     enregistrée » ; résultat affiché jusqu'à la question suivante ; podium = écran
+     de suspense ; récap final (rang, score, bonnes réponses / questions) ; RGPD en
+     ligne + « En savoir plus », sans case ; pseudo refusé = en choisir un autre (pas
+     de numéro auto) ; Salle d'attente : Taz « C'est bon, tu es dans la partie ! » +
+     coche verte + pseudo + « Regarde le grand écran » ; retardataire ; classement =
+     glisser-déposer, 1er en haut, flèches ↑↓ en secours ; erreurs = Taz statique +
+     texte clair + bouton, sans vanne ; vannes perso sur téléphone = V2 ; les
+     téléphones suivent le thème du grand écran.
+   - E/F (option 2 retenue) : E étoile orange #FF8A2B / #B84E08, F demi-lune rose
+     #FF7AC8 / #B8287C. Boost (override) : flamme pixel orange/jaune clignotante,
+     hors charte assumé, jamais sur une tuile de réponse.
+   - Direction visuelle : direction-hybride-arcade.html (tokens « borne » et
+     « écran crème », pixel pour HUD/chrono/scores, typo classique pour le texte).
+     Taz « le rond » et ses 6 expressions : taz-rond-expressions.html.
+   - Polices pixel hors ligne : repli monospace (aucun appel réseau).
+   ===================================================================== */
+:root{
+  --sans:"Aileron",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --pixel:"Press Start 2P","Courier New",ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#E7E2DA;color:#1B2B45;font-family:var(--sans);padding:40px 28px 90px}
+.page{max-width:1700px;margin:0 auto}
+.intro{display:grid;grid-template-columns:1fr minmax(0,560px);gap:40px;align-items:end;margin-bottom:34px}
+.intro small{display:block;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#80809B;margin-bottom:10px}
+.intro h1{font-size:44px;font-weight:900;letter-spacing:-.03em;line-height:1.04}
+.intro p{font-size:14.5px;line-height:1.55;color:#3A4257}
+.intro p+p{margin-top:8px;font-size:13px;color:#5B6478}
+@media (max-width:900px){.intro{grid-template-columns:1fr}}
+
+.row{background:#fff;border-radius:26px;padding:28px 30px 32px;margin-bottom:30px;box-shadow:0 20px 50px -34px rgba(27,43,69,.4)}
+.row-h{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.row-h b{font:16px var(--pixel);color:#fff;background:#273C59;padding:9px 11px;border-radius:10px}
+.row-h h2{font-size:26px;font-weight:900;letter-spacing:-.02em}
+.row-h p{font-size:13.5px;color:#5B6478;line-height:1.45;flex:1;min-width:260px}
+.shots{display:flex;flex-wrap:wrap;gap:34px 30px;align-items:flex-start}
+.shot{width:384px}
+.shot .hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:14px;font-weight:800}
+.shot .hd b{font:11px var(--pixel);background:#F55364;color:#fff;padding:6px 7px;border-radius:7px}
+.shot .hd em{margin-left:auto;font-style:normal;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#5B6478;display:flex;align-items:center;gap:6px}
+.shot .hd em i{width:14px;height:14px;border-radius:4px;box-shadow:inset 0 0 0 2px #273C59}
+.kd{background:#0B1220}.kl{background:#F3EDE1}
+.cap{margin-top:12px;font-size:12.5px;line-height:1.45;color:#5B6478}
+
+/* ===== Thèmes (tokens repris de direction-hybride-arcade.html + E/F + flamme) ===== */
+.th-dark{
+  --bg:#0B1220;--halo:#1A2A48;--ink:#F4F2EC;--soft:#A9B3C7;--dots:#1C2944;
+  --lab:#FF5468;--accent:#3FE0F0;
+  --card:#16223A;--card-b:#2C3D5E;--card-ink:#F4F2EC;--card-soft:#A9B3C7;--track:#0B1220;
+  --q-bg:#F6F1E7;--q-ink:#1B2B45;
+  --shadow:#000;--scan:rgba(0,0,0,.28);
+  --timer-bg:#0B1220;--timer-b:#FFC83D;--timer-fg:#FFC83D;--timer-sh:#7A4200;
+  --A:#FF5468;--B:#2EA8FF;--C:#FFC83D;--D:#1FD19B;--E:#FF8A2B;--F:#FF7AC8;
+  --onA:#0B1220;--onB:#0B1220;--onC:#0B1220;--onD:#0B1220;--onE:#0B1220;--onF:#0B1220;
+  --tint:#0B1220;--tint-p:16%;--ans-ink:#F4F2EC;
+  --ok:#1FD19B;--ko:#FF5468;--gain:#FFC83D;--gain-sh:#7A4200;--blinkc:#FFC83D;
+  --bub:#FFFFFF;--bub-b:#FFFFFF;--bub-ink:#1B2B45;
+  --btn:#F6F1E7;--btn-ink:#1B2B45;--field:#16223A;--field-b:#3FE0F0;
+  --hl:rgba(31,209,155,.22);
+}
+.th-light{
+  --bg:#F3EDE1;--halo:#FBF7EF;--ink:#1B2B45;--soft:#5B6478;--dots:#E2D8C6;
+  --lab:#C8243A;--accent:#005FA3;
+  --card:#FFFFFF;--card-b:#273C59;--card-ink:#1B2B45;--card-soft:#5B6478;--track:#F1EADC;
+  --q-bg:#FFFFFF;--q-ink:#1B2B45;
+  --shadow:#273C59;--scan:rgba(39,60,89,.05);
+  --timer-bg:#273C59;--timer-b:#273C59;--timer-fg:#FFC83D;--timer-sh:#0B1220;
+  --A:#D42A40;--B:#0070BD;--C:#F2A900;--D:#00845E;--E:#B84E08;--F:#B8287C;
+  --onA:#FFFFFF;--onB:#FFFFFF;--onC:#1B2B45;--onD:#FFFFFF;--onE:#FFFFFF;--onF:#FFFFFF;
+  --tint:#FFFFFF;--tint-p:12%;--ans-ink:#1B2B45;
+  --ok:#007A55;--ko:#C8243A;--gain:#1B2B45;--gain-sh:#FFC83D;--blinkc:#C8243A;
+  --bub:#FFFFFF;--bub-b:#273C59;--bub-ink:#1B2B45;
+  --btn:#273C59;--btn-ink:#FFFFFF;--field:#FFFFFF;--field-b:#273C59;
+  --hl:rgba(0,122,85,.14);
+}
+.kA{--c:var(--A);--on:var(--onA)}.kB{--c:var(--B);--on:var(--onB)}.kC{--c:var(--C);--on:var(--onC)}
+.kD{--c:var(--D);--on:var(--onD)}.kE{--c:var(--E);--on:var(--onE)}.kF{--c:var(--F);--on:var(--onF)}
+
+@keyframes blink{50%{opacity:.2}}
+@keyframes flick{0%{transform:translateY(0) scale(1,1);filter:brightness(1)}50%{transform:translateY(-1px) scale(.92,1.08);filter:brightness(1.35)}100%{transform:translateY(0) scale(1,1);filter:brightness(1)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,138,43,.0),3px 3px 0 var(--shadow)}50%{box-shadow:0 0 14px 2px rgba(255,176,32,.55),3px 3px 0 var(--shadow)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes dot{0%,100%{opacity:.2}33%{opacity:1}}
+@keyframes lift{0%,100%{transform:translate(0,0) rotate(-1deg)}50%{transform:translate(2px,-3px) rotate(-1.5deg)}}
+
+/* ===== Téléphone : écran 360 x 780 px CSS ===== */
+.phone{width:384px;border-radius:54px;background:#14161C;padding:12px;box-shadow:0 30px 60px -28px rgba(0,0,0,.6),inset 0 0 0 2px #2C2F38;position:relative}
+.phone::before{content:"";position:absolute;top:22px;left:50%;transform:translateX(-50%);width:96px;height:26px;border-radius:14px;background:#000;z-index:40}
+.pscr{width:360px;height:780px;border-radius:42px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 20% 85%,var(--halo) 0%,var(--bg) 62%);color:var(--ink);font-family:var(--sans)}
+.phone.tall .pscr{height:auto;min-height:780px}
+.pscr::before{content:"";position:absolute;inset:0;background-image:radial-gradient(var(--dots) 1.2px,transparent 1.3px);background-size:20px 20px}
+.pscr::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:30;background:repeating-linear-gradient(0deg,var(--scan) 0 1px,transparent 1px 3px)}
+.pin{position:relative;z-index:2;display:flex;flex-direction:column;min-height:780px;padding-bottom:18px}
+.fold{position:absolute;left:0;right:0;height:0;border-top:3px dashed #F55364;z-index:35}
+.fold span{position:absolute;right:8px;top:4px;background:#F55364;color:#fff;font-size:10px;font-weight:800;padding:3px 7px;border-radius:6px}
+.sbar{height:50px;flex:none;display:flex;justify-content:space-between;align-items:center;padding:4px 30px 0;font:600 14px var(--sans)}
+.sig{display:flex;align-items:flex-end;gap:2px;font-size:12px}
+.sig i{width:3px;background:var(--ink);border-radius:1px}.sig i:nth-child(1){height:4px}.sig i:nth-child(2){height:6px}.sig i:nth-child(3){height:8px}.sig i:nth-child(4){height:10px;margin-right:4px}
+
+/* barre de jeu */
+.gbar{display:flex;justify-content:space-between;align-items:center;padding:4px 16px 0;min-height:30px}
+.gbar .me{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800}
+.gbar .qn{font:10px var(--pixel);color:var(--accent)}
+.bst{display:inline-flex;align-items:center;gap:4px;font:8px var(--pixel);color:#1B2B45;background:linear-gradient(90deg,#FF8A2B,#FFC83D);padding:4px 6px 4px 4px;border-radius:6px;animation:glow 1.2s ease-in-out infinite}
+.flame{width:12px;height:15px;display:block;shape-rendering:crispEdges;animation:flick .45s steps(2) infinite;transform-origin:50% 100%}
+.flame.big{width:30px;height:38px}
+
+/* question */
+.qtop{display:flex;gap:12px;align-items:flex-start;padding:10px 16px 0}
+.qtx{flex:1;min-width:0}
+.qtx small{display:block;font:8px var(--pixel);color:var(--lab);letter-spacing:.06em;margin-bottom:6px}
+.qtx p{font-size:15px;font-weight:800;line-height:1.3}
+.timer{flex:none;width:64px;background:var(--timer-bg);border:3px solid var(--timer-b);border-radius:14px;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:6px;box-shadow:3px 3px 0 var(--shadow)}
+.timer b{font:400 22px var(--pixel);color:var(--timer-fg);text-shadow:3px 3px 0 var(--timer-sh);line-height:1}
+.timer.end b{animation:blink 1s steps(1) infinite}
+.segs{display:flex;gap:1px}.segs i{width:3px;height:6px;background:var(--timer-fg)}.segs i.off{opacity:.22}
+.need{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:12px 16px 0;padding:8px 10px;border-radius:10px;border:2px dashed var(--card-b);font-size:12.5px;font-weight:800}
+.need b{font-weight:700;color:var(--soft);font-size:12px;text-align:right}
+.list{display:flex;flex-direction:column;gap:9px;padding:12px 16px 0}
+.hint{margin:12px 16px 0;font-size:12px;color:var(--soft);font-weight:600;text-align:center}
+
+/* tuile de réponse (téléphone) */
+.tile{display:flex;align-items:stretch;border:3px solid var(--c);border-radius:14px;overflow:hidden;background:color-mix(in srgb,var(--c) var(--tint-p),var(--tint));color:var(--ans-ink);box-shadow:3px 3px 0 var(--shadow);min-height:56px;position:relative}
+.tile .L{width:44px;flex:none;background:var(--c);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.tile .L b{font:400 13px var(--pixel)}
+.tile .L svg{width:14px;height:14px;fill:var(--on);shape-rendering:crispEdges}
+.tile .t{flex:1;min-width:0;padding:9px 10px 9px 12px;font-size:15px;font-weight:700;line-height:1.28;display:flex;align-items:center;overflow-wrap:anywhere}
+.list.fill .tile{min-height:104px}.list.fill .tile .t{font-size:19px}
+.tile.big{min-height:66px}.tile.big .t{font-size:17px;font-weight:800}
+.tile .chk{flex:none;width:30px;display:flex;align-items:center;justify-content:center;margin-right:8px}
+.tile .chk svg{width:22px;height:22px;border:2.5px solid var(--c);border-radius:6px;fill:none;stroke:transparent;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;padding:1px}
+.tile.sel{background:var(--c);color:var(--on);border-width:3px;box-shadow:0 0 0 3px var(--ink),3px 3px 0 var(--shadow)}
+.tile.sel .L{background:color-mix(in srgb,var(--c) 70%,#000)}
+.tile.sel .chk svg{background:var(--on);border-color:var(--on);stroke:var(--c)}
+.tile.mini{min-height:48px;box-shadow:2px 2px 0 var(--shadow)}.tile.mini .t{font-size:14px}
+.tile.solo{min-height:84px}.tile.solo .L{width:64px}.tile.solo .L b{font-size:18px}.tile.solo .L svg{width:20px;height:20px}.tile.solo .t{font-size:24px}
+.tile.good{box-shadow:0 0 0 3px var(--ok),2px 2px 0 var(--shadow)}
+.tile.mine-ko{opacity:.75}.tile.mine-ko .t{text-decoration:line-through;text-decoration-thickness:2px}
+.mk{flex:none;align-self:center;margin-right:10px;font:8px var(--pixel);padding:5px 6px;border-radius:6px}
+.mk.ok{background:var(--ok);color:var(--bg)}.mk.ko{background:var(--ko);color:var(--bg)}
+.th-light .mk.ok,.th-light .mk.ko{color:#fff}
+
+/* classement */
+.rlist{display:flex;flex-direction:column;gap:9px;padding:12px 16px 0}
+.rk{display:flex;align-items:center;gap:8px}
+.rk .pos{width:30px;flex:none;font:11px var(--pixel);color:var(--soft);text-align:right}
+.rk .pos sup{font-size:7px}
+.rk .tile{flex:1}
+.tile.rnk .t{font-size:14.5px;padding-left:10px}
+.grip{flex:none;width:22px;display:grid;grid-template-columns:repeat(2,4px);gap:4px;align-content:center;justify-content:center;background:color-mix(in srgb,var(--c) 30%,var(--tint))}
+.grip i{width:4px;height:4px;border-radius:50%;background:var(--ans-ink);opacity:.6}
+.arrows{flex:none;display:flex;flex-direction:column;border-left:2px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.ar{flex:1;width:40px;display:flex;align-items:center;justify-content:center}
+.ar+.ar{border-top:2px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.ar svg{width:14px;height:14px;fill:none;stroke:var(--ans-ink);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ar.dis svg{opacity:.22}
+.tile.drag{animation:lift 1.6s ease-in-out infinite;box-shadow:0 0 0 3px var(--ink),8px 12px 0 -2px rgba(0,0,0,.35);z-index:3}
+
+/* bas d'écran : bouton collé */
+.dock{position:sticky;bottom:0;margin-top:auto;padding:14px 16px 4px;background:linear-gradient(transparent,var(--bg) 22%);z-index:5}
+.dock p{font-size:11px;color:var(--soft);text-align:center;margin-top:7px;font-weight:600}
+.btn{background:var(--btn);color:var(--btn-ink);border-radius:14px;padding:15px 12px;text-align:center;font-size:16px;font-weight:900;box-shadow:3px 3px 0 var(--shadow)}
+.btn.off{opacity:.38;box-shadow:none}
+
+/* rejoindre */
+.brand{text-align:center;padding:34px 20px 8px}
+.brand.sm{padding-top:22px}
+.logo{display:block;font:400 30px var(--pixel);color:var(--ink);text-shadow:3px 3px 0 var(--lab);letter-spacing:.02em}
+.logo em{font-style:normal;color:var(--timer-fg);text-shadow:3px 3px 0 var(--timer-sh)}
+.th-light .logo em{color:#C8243A;text-shadow:3px 3px 0 #FFC83D}
+.brand small{display:block;margin-top:16px;font-size:13px;color:var(--soft);font-weight:600;line-height:1.4}
+.brand small b{color:var(--ink)}
+.form{padding:22px 20px 0;display:flex;flex-direction:column;gap:12px}
+.form label{font-size:15px;font-weight:900}
+.field{display:flex;align-items:center;gap:10px;background:var(--field);border:3px solid var(--field-b);border-radius:14px;padding:14px;box-shadow:3px 3px 0 var(--shadow);min-height:60px}
+.field.txt span:first-child{font-size:18px;font-weight:700}
+.field em{margin-left:auto;font:8px var(--pixel);font-style:normal;color:var(--soft)}
+.field.pinf{justify-content:center;gap:14px;font:400 24px var(--pixel);letter-spacing:.12em}
+.field.err{border-color:var(--ko)}
+.field.bad{border-color:var(--ko);margin:4px 0 2px;width:100%}
+.caret{width:2px;height:24px;background:var(--accent);animation:blink 1s steps(1) infinite}
+.help{font-size:12.5px;color:var(--soft);font-weight:600}
+.err{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;font-weight:700;color:var(--ko);line-height:1.35}
+.err svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.rgpd{font-size:11.5px;line-height:1.4;color:var(--soft);margin-top:2px}
+.rgpd u{color:var(--ink);font-weight:700}
+.kbd{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px 8px 0;background:color-mix(in srgb,var(--card) 70%,transparent)}
+.kbd span{background:var(--card);border-radius:8px;text-align:center;padding:9px 0;font-size:20px;font-weight:600;box-shadow:0 1px 0 var(--shadow)}
+.kbd span.nil{background:transparent;box-shadow:none;color:var(--soft)}
+
+/* attente */
+.wait{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 22px 50px;text-align:center}
+.say p{background:var(--bub);color:var(--bub-ink);border:3px solid var(--bub-b);border-radius:18px;padding:12px 16px;font-size:17px;font-weight:800;line-height:1.3;box-shadow:4px 4px 0 var(--shadow);position:relative;display:flex;align-items:center;gap:10px;text-align:left}
+.say p::after{content:"";position:absolute;left:50%;bottom:-11px;width:16px;height:16px;background:var(--bub);border-right:3px solid var(--bub-b);border-bottom:3px solid var(--bub-b);transform:rotate(45deg)}
+.okc{width:30px;height:30px;flex:none;background:#1FD19B;border-radius:50%;fill:none;stroke:#0B1220;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;padding:4px}
+.th-light .okc{background:#007A55;stroke:#fff}
+.taz{width:150px;height:165px;margin-top:14px;animation:bob 2.6s ease-in-out infinite}
+.who{margin-top:12px}
+.who small{display:block;font:8px var(--pixel);color:var(--lab);letter-spacing:.06em}
+.who b{display:inline-block;margin-top:8px;font-size:22px;font-weight:900;background:var(--card);border:3px solid var(--card-b);border-radius:12px;padding:6px 14px;box-shadow:3px 3px 0 var(--shadow)}
+.look{margin-top:22px;font-size:18px;font-weight:900}
+.blinkp{margin-top:14px;font:8px var(--pixel);color:var(--blinkc);animation:blink 1.1s steps(1) infinite;letter-spacing:.06em;text-align:center}
+.pc.late{margin-top:18px;text-align:left;width:100%}
+.pc.late b{display:block;margin-top:6px;font-size:15px;line-height:1.35}
+
+/* cartes résultat */
+.body{padding:14px 16px 0;display:flex;flex-direction:column;gap:11px}
+.pc{background:var(--card);color:var(--card-ink);border:3px solid var(--card-b);border-radius:16px;padding:11px 13px;box-shadow:3px 3px 0 var(--shadow)}
+.pc small{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--card-soft)}
+.pc.two{display:grid;grid-template-columns:1fr 1fr;text-align:center}
+.pc.two div+div{border-left:2px dashed var(--card-b)}
+.pc.two b{display:block;font:400 17px var(--pixel);margin-top:8px}
+.pc.two b sup{font-size:9px}
+.riv{display:flex;align-items:center;gap:12px}
+.riv svg{width:22px;height:22px;fill:var(--lab);shape-rendering:crispEdges;flex:none}
+.riv b,.lead b{display:block;font-size:15px;font-weight:800;margin-top:3px;line-height:1.3}
+.lead{display:flex;align-items:center;gap:12px;border-color:#FFC83D}
+.lead svg{width:26px;height:26px;fill:#FFC83D;shape-rendering:crispEdges;flex:none}
+.th-light .lead svg{fill:#C98A00}
+.boost{display:flex;align-items:center;gap:12px;animation:glow 1.2s ease-in-out infinite}
+.boost b{display:block;font-size:15px;font-weight:800;margin-top:3px}
+.boost span:not(.tg){display:block;font-size:12px;font-weight:700;color:var(--card-soft);margin-top:2px}
+.boost .tg{margin-left:auto;font:8px var(--pixel);background:linear-gradient(90deg,#FF8A2B,#FFC83D);color:#1B2B45;padding:6px 7px;border-radius:6px;animation:blink .9s steps(1) infinite}
+.res{text-align:center;padding:18px 16px 0}
+.vd{font:400 15px var(--pixel);letter-spacing:.02em}
+.vd.ok{color:var(--ok);animation:blink .7s steps(1) 4}
+.vd.ko{color:var(--ko)}.vd.part{color:var(--C)}.vd.vote{color:var(--accent)}.vd.none{color:var(--soft)}
+.th-light .vd.part{color:#9A6B00}
+.gain{font:400 38px var(--pixel);color:var(--gain);text-shadow:4px 4px 0 var(--gain-sh);margin-top:14px}
+.gain.zero{color:var(--soft);text-shadow:none}
+.res small{display:block;font-size:12px;font-weight:700;color:var(--soft);margin-top:10px;line-height:1.4}
+.res small.nojf{font-size:13px;margin-top:12px}
+.cmp{display:flex;flex-direction:column;gap:8px}
+.cmp small+.tile{margin-bottom:4px}
+.cmp small.q3{text-transform:none;letter-spacing:0;font-size:12px;font-weight:600;line-height:1.35}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cols>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.cols small{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin-bottom:2px}
+.ci{display:flex;align-items:stretch;border:2px solid var(--c);border-radius:10px;overflow:hidden;background:color-mix(in srgb,var(--c) var(--tint-p),var(--tint));min-height:44px}
+.ci .n{width:16px;flex:none;font:8px var(--pixel);display:flex;align-items:center;justify-content:center;color:var(--soft)}
+.ci .L{width:24px;flex:none;background:var(--c);color:var(--on);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.ci .L b{font:400 8px var(--pixel)}.ci .L svg{width:9px;height:9px;fill:var(--on);shape-rendering:crispEdges}
+.ci .t{flex:1;min-width:0;font-size:11.5px;font-weight:700;line-height:1.2;padding:4px 6px;display:flex;align-items:center;hyphens:auto;-webkit-hyphens:auto}
+.ci.hit{box-shadow:0 0 0 2px var(--ok);background:var(--hl)}
+.ci.hit .n{color:var(--ok)}
+.ci.miss{opacity:.62;border-style:dashed}
+.legend{font-size:11.5px;font-weight:700;color:var(--soft);display:flex;align-items:center;gap:6px;margin-top:-4px}
+.legend i{width:14px;height:10px;border-radius:3px;background:var(--hl);box-shadow:0 0 0 2px var(--ok)}
+.sent{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 22px 70px;text-align:center}
+.sent>small{font:8px var(--pixel);color:var(--lab);letter-spacing:.06em;margin-bottom:12px}
+.sent .tile{text-align:left}
+.ok-t{margin-top:34px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:20px;font-weight:900}
+.ok-t svg{width:26px;height:26px;fill:none;stroke:var(--ok);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.sub{margin-top:10px;font-size:14px;color:var(--soft);font-weight:600;line-height:1.4}
+.sub.c{text-align:center;margin-top:6px}
+
+/* fin */
+.susp{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 26px 60px}
+.susp h3{font:400 16px var(--pixel);line-height:1.5;color:var(--timer-fg);text-shadow:3px 3px 0 var(--timer-sh)}
+.th-light .susp h3{color:#1B2B45;text-shadow:3px 3px 0 #FFC83D}
+.dots{display:flex;gap:12px;margin-bottom:28px}
+.dots i{width:14px;height:14px;background:var(--accent);animation:dot 1.2s steps(1) infinite}
+.dots i:nth-child(2){animation-delay:.4s}.dots i:nth-child(3){animation-delay:.8s}
+.end{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:60px}
+.end .over{font:10px var(--pixel);color:var(--lab);text-align:center;letter-spacing:.06em}
+.end .qz{text-align:center;font-size:15px;font-weight:800;margin-top:10px;color:var(--soft)}
+.rank{margin:22px 16px 0;text-align:center;background:var(--q-bg);color:var(--q-ink);border:3px solid var(--card-b);border-radius:20px;padding:18px 12px 20px;box-shadow:4px 4px 0 var(--shadow)}
+.rank small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#5B6478}
+.rank b{display:block;font:400 54px var(--pixel);margin-top:16px;text-shadow:4px 4px 0 #FFC83D}
+.rank b sup{font-size:20px}
+.rank span{display:block;margin-top:12px;font-size:15px;font-weight:800}
+
+/* erreurs */
+.errs{flex:1;display:flex;flex-direction:column;align-items:center;padding:40px 22px 0;text-align:center}
+.errs .taz{width:140px;height:154px;margin:0 0 14px}
+.errs h3{font-size:22px;font-weight:900;line-height:1.2;letter-spacing:-.01em}
+.errs p{margin-top:12px;font-size:15px;line-height:1.45;color:var(--soft);font-weight:600}
+.errs .btn{margin-top:auto;width:100%}
+.errs .field{margin-top:18px}
+.spin{display:flex;gap:6px;margin-top:22px}
+.spin i{width:10px;height:10px;background:var(--accent);animation:dot 1s steps(1) infinite}
+.spin i:nth-child(2){animation-delay:.25s}.spin i:nth-child(3){animation-delay:.5s}.spin i:nth-child(4){animation-delay:.75s}
+
+/* notes */
+.notes{background:#fff;border-radius:26px;padding:28px 30px;box-shadow:0 20px 50px -34px rgba(27,43,69,.4);display:grid;grid-template-columns:1fr 1fr;gap:30px}
+@media (max-width:900px){.notes{grid-template-columns:1fr}}
+.notes h3{font-size:18px;font-weight:900;margin-bottom:10px}
+.notes li{font-size:13.5px;line-height:1.5;color:#3A4257;margin-bottom:6px}
+.notes ul{padding-left:18px}
+@media (max-width:440px){body{padding:24px 8px 60px}.shot{width:100%}.phone{zoom:.8}.row{padding:20px 12px}}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+  <filter id="blur5" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="blur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2"/></filter>
+  <radialGradient id="eyeW" cx="40%" cy="32%" r="72%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCE0EC"/></radialGradient>
+  <radialGradient id="pupil" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#3D5072"/><stop offset="1" stop-color="#0B1020"/></radialGradient>
+  <radialGradient id="pink" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#FFC4CC"/><stop offset=".55" stop-color="#F55364"/><stop offset="1" stop-color="#A21F35"/></radialGradient>
+  <radialGradient id="nFur" cx="35%" cy="26%" r="82%"><stop offset="0" stop-color="#6F8FC2"/><stop offset=".45" stop-color="#273C59"/><stop offset="1" stop-color="#0E1828"/></radialGradient>
+  <radialGradient id="nMuz" cx="40%" cy="30%" r="80%"><stop offset="0" stop-color="#F4EFEA"/><stop offset="1" stop-color="#B9AFA4"/></radialGradient>
+  <linearGradient id="nBand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8794"/><stop offset="1" stop-color="#D23A4E"/></linearGradient>
+  <symbol id="roundBase" viewBox="0 0 200 220">
+    <ellipse cx="100" cy="206" rx="58" ry="8" fill="#000" opacity=".3" filter="url(#blur5)"/>
+    <ellipse cx="100" cy="196" rx="30" ry="14" fill="url(#nFur)"/>
+    <circle cx="48" cy="56" r="20" fill="url(#nFur)"/><circle cx="152" cy="56" r="20" fill="url(#nFur)"/>
+    <circle cx="48" cy="58" r="10" fill="url(#pink)"/><circle cx="152" cy="58" r="10" fill="url(#pink)"/>
+    <circle cx="100" cy="124" r="78" fill="url(#nFur)"/>
+    <path d="M30 138 Q100 170 170 138 Q154 160 100 164 Q46 160 30 138Z" fill="url(#nBand)"/>
+    <ellipse cx="68" cy="88" rx="26" ry="12" transform="rotate(-28 68 88)" fill="#fff" opacity=".25" filter="url(#blur2)"/>
+    <ellipse cx="100" cy="148" rx="32" ry="22" fill="url(#nMuz)"/>
+  </symbol>
+  <symbol id="e1" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M64 92 L90 89" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <path d="M110 88 L136 93" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="78" cy="106" rx="14" ry="15" fill="url(#eyeW)"/><ellipse cx="122" cy="106" rx="14" ry="15" fill="url(#eyeW)"/>
+    <circle cx="81" cy="109" r="7.5" fill="url(#pupil)"/><circle cx="125" cy="109" r="7.5" fill="url(#pupil)"/>
+    <circle cx="84" cy="105" r="2.6" fill="#fff"/><circle cx="128" cy="105" r="2.6" fill="#fff"/>
+    <ellipse cx="100" cy="136" rx="12" ry="8" fill="url(#pink)"/><ellipse cx="96" cy="133" rx="4" ry="2" fill="#fff" opacity=".8"/>
+    <path d="M84 156 Q100 166 116 156" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="e2" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M62 92 Q78 78 94 90" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M106 90 Q122 78 138 92" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M66 104 Q78 92 90 104" stroke="#0E1828" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M110 104 Q122 92 134 104" stroke="#0E1828" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="100" cy="134" rx="11" ry="7" fill="url(#pink)"/>
+    <path d="M76 150 Q100 180 124 150 Q100 166 76 150Z" fill="#4A0E14"/>
+    <path d="M82 152 L88 160 L94 153 L100 161 L106 153 L112 160 L118 152 Q100 160 82 152Z" fill="#fff"/>
+  </symbol>
+  <symbol id="e3" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M64 96 L90 98" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <path d="M110 98 L136 96" stroke="#0E1828" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="78" cy="108" rx="14" ry="12" fill="url(#eyeW)"/><ellipse cx="122" cy="108" rx="14" ry="12" fill="url(#eyeW)"/>
+    <circle cx="74" cy="110" r="7" fill="url(#pupil)"/><circle cx="118" cy="110" r="7" fill="url(#pupil)"/>
+    <path d="M64 100 L92 102" stroke="url(#nFur)" stroke-width="10" stroke-linecap="round"/>
+    <path d="M108 102 L136 100" stroke="url(#nFur)" stroke-width="10" stroke-linecap="round"/>
+    <ellipse cx="100" cy="136" rx="12" ry="8" fill="url(#pink)"/>
+    <path d="M84 158 Q100 160 118 155" stroke="#0E1828" stroke-width="4" fill="none" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="e5" viewBox="0 0 200 220">
+    <use href="#roundBase" width="200" height="220"/>
+    <path d="M60 86 Q78 72 96 86" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M104 86 Q122 72 140 86" stroke="#0E1828" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="78" cy="108" rx="17" ry="18" fill="url(#eyeW)"/><ellipse cx="122" cy="108" rx="17" ry="18" fill="url(#eyeW)"/>
+    <circle cx="80" cy="111" r="9" fill="url(#pupil)"/><circle cx="124" cy="111" r="9" fill="url(#pupil)"/>
+    <circle cx="84" cy="106" r="3" fill="#fff"/><circle cx="128" cy="106" r="3" fill="#fff"/>
+    <ellipse cx="100" cy="136" rx="11" ry="7" fill="url(#pink)"/>
+    <ellipse cx="100" cy="160" rx="10" ry="12" fill="#4A0E14"/><ellipse cx="97" cy="155" rx="3" ry="4" fill="#fff" opacity=".5"/>
+  </symbol>
+  <!-- formes A-F (pixel 8x8) : A-D de la planche hybride, E étoile et F demi-lune de reponses-e-f.html -->
+  <symbol id="p-tri" viewBox="0 0 8 8"><path d="M3 0h2v2h1v2h1v2h1v2H0V6h1V4h1V2h1z"/></symbol>
+  <symbol id="p-dia" viewBox="0 0 8 8"><path d="M3 0h2v1h1v1h1v1h1v2H7v1H6v1H5v1H3V7H2V6H1V5H0V3h1V2h1V1h1z"/></symbol>
+  <symbol id="p-cir" viewBox="0 0 8 8"><path d="M2 0h4v1h1v1h1v4H7v1H6v1H2V7H1V6H0V2h1V1h1z"/></symbol>
+  <symbol id="p-sq" viewBox="0 0 8 8"><path d="M1 1h6v6H1z"/></symbol>
+  <symbol id="p-star" viewBox="0 0 8 8"><path d="M3 0h2v1h-2zM3 1h2v1h-2zM0 2h8v1h-8zM1 3h6v1h-6zM2 4h4v1h-4zM1 5h6v1h-6zM1 6h2v1h-2zM5 6h2v1h-2zM0 7h2v1h-2zM6 7h2v1h-2z"/></symbol>
+  <symbol id="p-moon" viewBox="0 0 8 8"><path d="M2 0h4v1h-4zM1 1h4v1h-4zM0 2h4v1h-4zM0 3h3v1h-3zM0 4h3v1h-3zM0 5h4v1h-4zM1 6h4v1h-4zM2 7h4v1h-4z"/></symbol>
+  <symbol id="p-arrow" viewBox="0 0 7 7"><path d="M3 0h1v1h1v1h1v1h1v1H5v3H2V4H0V3h1V2h1V1h1z"/></symbol>
+  <symbol id="p-crown" viewBox="0 0 8 8"><path d="M0 1h1v1h1v1h1V1h2v2h1V2h1V1h1v6H0z"/></symbol>
+  <symbol id="flame" viewBox="0 0 8 10"><path fill="#FF5A1F" d="M3 0h1v1h-1zM3 1h1v1h-1zM4 1h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM0 6h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM0 7h1v1h-1zM1 7h1v1h-1zM2 7h1v1h-1zM3 7h1v1h-1zM4 7h1v1h-1zM5 7h1v1h-1zM6 7h1v1h-1zM7 7h1v1h-1zM0 8h1v1h-1zM1 8h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM1 9h1v1h-1zM2 9h1v1h-1zM3 9h1v1h-1zM4 9h1v1h-1zM5 9h1v1h-1zM6 9h1v1h-1z"/><path fill="#FFB020" d="M3 4h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM2 7h1v1h-1zM3 7h1v1h-1zM4 7h1v1h-1zM5 7h1v1h-1zM2 8h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1zM5 8h1v1h-1zM3 9h1v1h-1zM4 9h1v1h-1z"/><path fill="#FFF1A8" d="M3 7h1v1h-1zM3 8h1v1h-1zM4 8h1v1h-1z"/></symbol>
+</defs>
+</svg>
+<div class="page">
+<div class="intro">
+  <div><small>TazQuiz · UX · écrans clés</small><h1>Téléphone du joueur</h1></div>
+  <div>
+    <p>Tous les écrans du joueur, de « rejoindre » au récap final, dessinés à 360 px de large (téléphone Android courant), écran visible de 780 px. Partie d'exemple : quiz « Inauguration TazQuiz », 8 questions, 40 joueurs, joueur « Slide Master ». Réponses d'exemple non vérifiées.</p>
+    <p>Thème foncé « borne » par défaut ; quelques écrans repris en thème clair « écran crème », car le téléphone suit le thème du grand écran. Le top 5 n'est jamais sur le téléphone. La flamme BOOST clignote (animation CSS).</p>
+  </div>
+</div>
+<section class="row"><div class="row-h"><b>1</b><h2>Rejoindre</h2><p>Deux chemins (memlog) : lien de l'application + PIN, ou QR code qui ouvre directement le pseudo. Objectif &lt; 30 s (CAP-5).</p></div><div class="shots"><figure class="shot"><figcaption class="hd"><b>a</b><span>Code de la partie</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="brand"><span class="logo">TAZ<em>QUIZ</em></span><small>Rejoins la partie</small></div><div class="form"><label>Code de la partie</label><div class="field pinf"><span>482</span><span>91</span><span class="caret"></span></div><p class="help">Le code à 6 chiffres est affiché sur le grand écran.</p><div class="btn ">Continuer</div></div><div class="kbd"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span class="nil"></span><span>0</span><span class="nil">&#9003;</span></div></div></div></div><p class="cap">Arrivée par le lien de l'application. Le PIN se tape au clavier numérique du téléphone (dessiné ici pour situer). Le QR code saute cet écran (CAP-4).</p></figure><figure class="shot"><figcaption class="hd"><b>b</b><span>Ton pseudo</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="brand sm"><span class="logo">TAZ<em>QUIZ</em></span><small>Partie <b>Inauguration TazQuiz</b> · code 482 913</small></div><div class="form"><label>Ton pseudo</label><div class="field txt "><span>Slide Master</span><span class="caret"></span><em>12 / 20</em></div><p class="rgpd">Ton pseudo et tes réponses servent uniquement au déroulé de cette partie. <u>En savoir plus</u></p><div class="btn ">Rejoindre</div></div></div></div></div><p class="cap">Après QR ou PIN. Mention RGPD en une ligne discrète + « En savoir plus », pas de case à cocher (memlog). Le nom de la partie rassure : on est au bon endroit.</p></figure><figure class="shot"><figcaption class="hd"><b>b</b><span>Ton pseudo</span><em><i class="kl"></i>Clair</em></figcaption><div class="phone"><div class="pscr th-light"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="brand sm"><span class="logo">TAZ<em>QUIZ</em></span><small>Partie <b>Inauguration TazQuiz</b> · code 482 913</small></div><div class="form"><label>Ton pseudo</label><div class="field txt "><span>Slide Master</span><span class="caret"></span><em>12 / 20</em></div><p class="rgpd">Ton pseudo et tes réponses servent uniquement au déroulé de cette partie. <u>En savoir plus</u></p><div class="btn ">Rejoindre</div></div></div></div></div><p class="cap">Même écran en thème clair : le téléphone suit le thème choisi pour le grand écran.</p></figure><figure class="shot"><figcaption class="hd"><b>c</b><span>Pseudo déjà pris</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="brand sm"><span class="logo">TAZ<em>QUIZ</em></span><small>Partie <b>Inauguration TazQuiz</b> · code 482 913</small></div><div class="form"><label>Ton pseudo</label><div class="field txt err"><span>Julie</span><span class="caret"></span><em>5 / 20</em></div><p class="err"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/><path d="M8 4.5v4.5M8 11.2v.3"/></svg>« Julie » est déjà pris dans cette partie. Choisis un autre pseudo.</p><p class="rgpd">Ton pseudo et tes réponses servent uniquement au déroulé de cette partie. <u>En savoir plus</u></p><div class="btn off">Rejoindre</div></div></div></div></div><p class="cap">Message en ligne sous le champ, bouton désactivé tant que le pseudo n'a pas changé. Aucun numéro ajouté automatiquement (memlog).</p></figure><figure class="shot"><figcaption class="hd"><b>c</b><span>Pseudo refusé</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="brand sm"><span class="logo">TAZ<em>QUIZ</em></span><small>Partie <b>Inauguration TazQuiz</b> · code 482 913</small></div><div class="form"><label>Ton pseudo</label><div class="field txt err"><span>Gros nul</span><span class="caret"></span><em>8 / 20</em></div><p class="err"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="7"/><path d="M8 4.5v4.5M8 11.2v.3"/></svg>Ce pseudo n'est pas accepté. Choisis un autre pseudo.</p><p class="rgpd">Ton pseudo et tes réponses servent uniquement au déroulé de cette partie. <u>En savoir plus</u></p><div class="btn off">Rejoindre</div></div></div></div></div><p class="cap">Variante gros mot : même mécanique, message neutre qui ne répète pas le mot.</p></figure></div></section><section class="row"><div class="row-h"><b>2</b><h2>Attente</h2><p>Taz n'apparaît sur le téléphone qu'ici et dans les erreurs en V1 (vannes perso en V2).</p></div><div class="shots"><figure class="shot"><figcaption class="hd"><b>d</b><span>Salle d'attente</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="wait"><div class="say"><p><svg class="okc" viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg>C'est bon, tu es dans la partie !</p></div><svg class="taz" viewBox="0 0 200 220"><use href="#e2" width="200" height="220"/></svg><div class="who"><small>Ton pseudo</small><b>Slide Master</b></div><p class="look">Regarde le grand écran</p><p class="blinkp">EN ATTENTE DU LANCEMENT</p></div></div></div></div><p class="cap">Taz content/fier, coche verte, pseudo du joueur, « Regarde le grand écran » (memlog). La liste des joueurs reste sur le grand écran.</p></figure><figure class="shot"><figcaption class="hd"><b>e</b><span>Retardataire</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="wait"><div class="say"><p><svg class="okc" viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg>C'est bon, tu es dans la partie !</p></div><svg class="taz" viewBox="0 0 200 220"><use href="#e1" width="200" height="220"/></svg><div class="who"><small>Ton pseudo</small><b>Slide Master</b></div><div class="pc late"><small>Partie en cours · question 4 sur 8</small><b>Tu entres avec 0 point, tu joues dès la prochaine question</b></div><p class="look">Regarde le grand écran</p></div></div></div></div><p class="cap">Partie déjà commencée : même confirmation + message retardataire (CAP-5, memlog). Il joue dès la question suivante.</p></figure></div></section><section class="row"><div class="row-h"><b>3</b><h2>Répondre</h2><p>CAP-24 : énoncé complet en petit en haut, toutes les réponses en entier, compte à rebours visible. Couleur + forme + lettre A–F (CAP-14).</p></div><div class="shots"><figure class="shot"><figcaption class="hd"><b>f</b><span>Choix simple · 4 réponses</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q01/08</span></div><div class="qtop"><div class="qtx"><small>CHOIX SIMPLE</small><p>En quelle année Tasmane a-t-elle été créée ?</p></div><div class="timer "><b>14</b><span class="segs"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i></span></div></div><div class="list fill"><div class="tile kA big"><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="t">2008</span></div><div class="tile kB big"><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">2011</span></div><div class="tile kC big"><span class="L"><b>C</b><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span><span class="t">2014</span></div><div class="tile kD big"><span class="L"><b>D</b><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span><span class="t">Bien avant l'invention du PowerPoint</span></div></div><p class="hint">Touche une réponse : elle est envoyée tout de suite.</p></div></div></div><p class="cap">La réponse part dès le toucher (formats-de-question). Réponses en liste pleine largeur, texte jamais coupé.</p></figure><figure class="shot"><figcaption class="hd"><b>g</b><span>Choix multiple · 6 réponses longues</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone tall"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q05/08</span></div><div class="qtop"><div class="qtx"><small>CHOIX MULTIPLE</small><p>Parmi ces affirmations sur les règles du TazQuiz, lesquelles sont vraies ?</p></div><div class="timer "><b>9</b><span class="segs"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i></span></div></div><div class="need"><span>2 bonnes réponses attendues</span><b>2 cochées</b></div><div class="list"><div class="tile kA sel"><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="t">Plus tu réponds vite, plus ta bonne réponse rapporte : le score de vitesse va de 500 à 1 000 points</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kB "><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">Une mauvaise réponse te fait perdre la moitié des points gagnés depuis le début de la partie</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kC "><span class="L"><b>C</b><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span><span class="t">Si ton téléphone se met en veille, tu perds ta série et tu repars de zéro au classement</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kD sel"><span class="L"><b>D</b><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span><span class="t">Enchaîner deux bonnes réponses d'affilée active le boost et ajoute un bonus de série à tes points</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kE "><span class="L"><b>E</b><svg viewBox="0 0 8 8"><use href="#p-star"/></svg></span><span class="t">L'animateur voit en direct, sur le grand écran, la réponse choisie par chaque joueur, pseudo par pseudo</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kF "><span class="L"><b>F</b><svg viewBox="0 0 8 8"><use href="#p-moon"/></svg></span><span class="t">Le top 5 du classement s'affiche sur ton téléphone après chaque question scorée, avec tous les pseudos</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div></div><div class="dock"><div class="btn ">Valider mes 2 réponses</div><p>Sans validation à la fin du chrono : pas de réponse.</p></div></div><div class="fold" style="top:780px"><span>bas de l'écran visible (780 px) · la suite se voit en faisant défiler</span></div></div></div><p class="cap">A et D cochées. « 2 bonnes réponses attendues » + compteur ; le bouton Valider reste collé en bas. 6 réponses de ~100 caractères : la page défile (voir le trait pointillé).</p></figure><figure class="shot"><figcaption class="hd"><b>g</b><span>Choix multiple · 6 réponses longues</span><em><i class="kl"></i>Clair</em></figcaption><div class="phone tall"><div class="pscr th-light"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q05/08</span></div><div class="qtop"><div class="qtx"><small>CHOIX MULTIPLE</small><p>Parmi ces affirmations sur les règles du TazQuiz, lesquelles sont vraies ?</p></div><div class="timer "><b>9</b><span class="segs"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i><i class="off"></i></span></div></div><div class="need"><span>2 bonnes réponses attendues</span><b>2 cochées</b></div><div class="list"><div class="tile kA sel"><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="t">Plus tu réponds vite, plus ta bonne réponse rapporte : le score de vitesse va de 500 à 1 000 points</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kB "><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">Une mauvaise réponse te fait perdre la moitié des points gagnés depuis le début de la partie</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kC "><span class="L"><b>C</b><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span><span class="t">Si ton téléphone se met en veille, tu perds ta série et tu repars de zéro au classement</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kD sel"><span class="L"><b>D</b><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span><span class="t">Enchaîner deux bonnes réponses d'affilée active le boost et ajoute un bonus de série à tes points</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kE "><span class="L"><b>E</b><svg viewBox="0 0 8 8"><use href="#p-star"/></svg></span><span class="t">L'animateur voit en direct, sur le grand écran, la réponse choisie par chaque joueur, pseudo par pseudo</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div><div class="tile kF "><span class="L"><b>F</b><svg viewBox="0 0 8 8"><use href="#p-moon"/></svg></span><span class="t">Le top 5 du classement s'affiche sur ton téléphone après chaque question scorée, avec tous les pseudos</span><span class="chk"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></div></div><div class="dock"><div class="btn ">Valider mes 2 réponses</div><p>Sans validation à la fin du chrono : pas de réponse.</p></div></div><div class="fold" style="top:780px"><span>bas de l'écran visible (780 px) · la suite se voit en faisant défiler</span></div></div></div><p class="cap">Même écran en clair. E étoile orange, F demi-lune rose (option 2 retenue).</p></figure><figure class="shot"><figcaption class="hd"><b>h</b><span>Classement · 5 éléments</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q04/08</span></div><div class="qtop"><div class="qtx"><small>CLASSEMENT</small><p>Classez ces étapes d'une mission, de la première à la dernière</p></div><div class="timer "><b>18</b><span class="segs"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="off"></i></span></div></div><div class="need"><span>1<sup>er</sup> en haut · dernier en bas</span><b>Glisse ou utilise les flèches</b></div><div class="rlist"><div class="rk"><span class="pos">1<sup>er</sup></span><div class="tile kB rnk"><span class="grip"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">Cadrage avec le client</span><span class="arrows"><span class="ar dis"><svg viewBox="0 0 12 12"><path d="M2 8l4-4 4 4"/></svg></span><span class="ar"><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4"/></svg></span></span></div></div><div class="rk"><span class="pos">2<sup>e</sup></span><div class="tile kE rnk"><span class="grip"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="L"><b>E</b><svg viewBox="0 0 8 8"><use href="#p-star"/></svg></span><span class="t">Diagnostic de l'existant</span><span class="arrows"><span class="ar"><svg viewBox="0 0 12 12"><path d="M2 8l4-4 4 4"/></svg></span><span class="ar"><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4"/></svg></span></span></div></div><div class="rk"><span class="pos">3<sup>e</sup></span><div class="tile kD rnk drag"><span class="grip"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="L"><b>D</b><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span><span class="t">Restitution des recommandations</span><span class="arrows"><span class="ar"><svg viewBox="0 0 12 12"><path d="M2 8l4-4 4 4"/></svg></span><span class="ar"><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4"/></svg></span></span></div></div><div class="rk"><span class="pos">4<sup>e</sup></span><div class="tile kC rnk"><span class="grip"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="L"><b>C</b><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span><span class="t">Ateliers de co-construction</span><span class="arrows"><span class="ar"><svg viewBox="0 0 12 12"><path d="M2 8l4-4 4 4"/></svg></span><span class="ar"><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4"/></svg></span></span></div></div><div class="rk"><span class="pos">5<sup>e</sup></span><div class="tile kA rnk"><span class="grip"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="t">Suivi de la mise en œuvre</span><span class="arrows"><span class="ar"><svg viewBox="0 0 12 12"><path d="M2 8l4-4 4 4"/></svg></span><span class="ar dis"><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4"/></svg></span></span></div></div></div><div class="dock"><div class="btn ">Valider mon ordre</div><p>Sans validation à la fin du chrono : pas de réponse.</p></div></div></div></div><p class="cap">Poignée pour glisser (D en cours de déplacement), flèches ↑↓ sur chaque élément en secours. Le 1<sup>er</sup> est en haut. Ordre initial mélangé.</p></figure></div></section><section class="row"><div class="row-h"><b>4</b><h2>Après la réponse</h2><p>CAP-15 + formats-de-question : résultat selon le format, points, score, rang, joueur juste devant et écart. Reste affiché jusqu'à la question suivante. Jamais de top 5.</p></div><div class="shots"><figure class="shot"><figcaption class="hd"><b>i</b><span>Réponse enregistrée</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q01/08</span></div><div class="sent"><small>TA RÉPONSE</small><div class="tile kB big solo"><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">2011</span></div><p class="ok-t"><svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 5"/></svg>Réponse enregistrée</p><p class="sub">Attends la révélation sur le grand écran.</p><p class="blinkp">RÉVÉLATION À LA FIN DU CHRONO</p></div></div></div></div><p class="cap">Écran sobre : couleur, forme et lettre de la réponse choisie, puis attente de la révélation (CAP-23).</p></figure><figure class="shot"><figcaption class="hd"><b>j</b><span>Juste · boost</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master<span class="bst"><svg class="flame " viewBox="0 0 8 10"><use href="#flame"/></svg>BOOST</span></span><span class="qn">Q06/08</span></div><div class="res"><div class="vd ok">BONNE RÉPONSE !</div><div class="gain">+950</div><small>points gagnés · vitesse +850 · série +100</small></div><div class="body"><div class="pc two"><div><small>Rang</small><b>7<sup>E</sup>/40</b></div><div><small>Score</small><b>4 380</b></div></div><div class="pc boost"><svg class="flame big" viewBox="0 0 8 10"><use href="#flame"/></svg><div><small>En boost</small><b>2 bonnes réponses d'affilée</b><span>Bonus de série +100</span></div><span class="tg">BOOST</span></div><div class="pc riv"><svg viewBox="0 0 7 7"><use href="#p-arrow"/></svg><div><small>Juste devant toi</small><b>Julie est juste devant toi, à 120 pts</b></div></div></div></div></div></div><p class="cap">2<sup>e</sup> bonne réponse d'affilée : flamme BOOST à côté du pseudo et dans la carte de série (CAP-7). 850 + 100 = 950 (bareme.md).</p></figure><figure class="shot"><figcaption class="hd"><b>j</b><span>Juste · boost</span><em><i class="kl"></i>Clair</em></figcaption><div class="phone"><div class="pscr th-light"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master<span class="bst"><svg class="flame " viewBox="0 0 8 10"><use href="#flame"/></svg>BOOST</span></span><span class="qn">Q06/08</span></div><div class="res"><div class="vd ok">BONNE RÉPONSE !</div><div class="gain">+950</div><small>points gagnés · vitesse +850 · série +100</small></div><div class="body"><div class="pc two"><div><small>Rang</small><b>7<sup>E</sup>/40</b></div><div><small>Score</small><b>4 380</b></div></div><div class="pc boost"><svg class="flame big" viewBox="0 0 8 10"><use href="#flame"/></svg><div><small>En boost</small><b>2 bonnes réponses d'affilée</b><span>Bonus de série +100</span></div><span class="tg">BOOST</span></div><div class="pc riv"><svg viewBox="0 0 7 7"><use href="#p-arrow"/></svg><div><small>Juste devant toi</small><b>Julie est juste devant toi, à 120 pts</b></div></div></div></div></div></div><p class="cap">Même écran en clair : la flamme garde ses couleurs orange/jaune, hors charte assumé.</p></figure><figure class="shot"><figcaption class="hd"><b>k</b><span>Faux</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q01/08</span></div><div class="res"><div class="vd ko">RATÉ !</div><div class="gain zero">+0</div><small>points gagnés</small></div><div class="body"><div class="pc cmp"><small>Ta réponse</small><div class="tile kC mini mine-ko"><span class="L"><b>C</b><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span><span class="t">2014</span><span class="mk ko">FAUX</span></div><small>La bonne réponse</small><div class="tile kB mini good"><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">2011</span><span class="mk ok">JUSTE</span></div></div><div class="pc two"><div><small>Rang</small><b>18<sup>E</sup>/40</b></div><div><small>Score</small><b>0</b></div></div><div class="pc riv"><svg viewBox="0 0 7 7"><use href="#p-arrow"/></svg><div><small>Juste devant toi</small><b>Nico est juste devant toi, à 503 pts</b></div></div></div></div></div></div><p class="cap">Faux + la bonne réponse, 0 point, série perdue (pas de flamme).</p></figure><figure class="shot"><figcaption class="hd"><b>l</b><span>Classement · partiel</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q04/08</span></div><div class="res"><div class="vd part">PRESQUE !</div><div class="gain">+720</div><small>9 paires sur 10 dans le bon ordre · série à 0</small></div><div class="body"><div class="cols"><div><small>Ton ordre</small><div class="ci kB hit"><span class="n">1</span><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">Cadrage avec le client</span></div><div class="ci kE hit"><span class="n">2</span><span class="L"><b>E</b><svg viewBox="0 0 8 8"><use href="#p-star"/></svg></span><span class="t">Diagnostic de l'existant</span></div><div class="ci kD miss"><span class="n">3</span><span class="L"><b>D</b><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span><span class="t">Restitution des recommandations</span></div><div class="ci kC miss"><span class="n">4</span><span class="L"><b>C</b><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span><span class="t">Ateliers de co-construction</span></div><div class="ci kA hit"><span class="n">5</span><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="t">Suivi de la mise en œuvre</span></div></div><div><small>Bon ordre</small><div class="ci kB"><span class="n">1</span><span class="L"><b>B</b><svg viewBox="0 0 8 8"><use href="#p-dia"/></svg></span><span class="t">Cadrage avec le client</span></div><div class="ci kE"><span class="n">2</span><span class="L"><b>E</b><svg viewBox="0 0 8 8"><use href="#p-star"/></svg></span><span class="t">Diagnostic de l'existant</span></div><div class="ci kC"><span class="n">3</span><span class="L"><b>C</b><svg viewBox="0 0 8 8"><use href="#p-cir"/></svg></span><span class="t">Ateliers de co-construction</span></div><div class="ci kD"><span class="n">4</span><span class="L"><b>D</b><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span><span class="t">Restitution des recommandations</span></div><div class="ci kA"><span class="n">5</span><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="t">Suivi de la mise en œuvre</span></div></div></div><p class="legend"><i class="hl"></i>bien placé</p><div class="pc two"><div><small>Rang</small><b>15<sup>E</sup>/40</b></div><div><small>Score</small><b>2 630</b></div></div><div class="pc riv"><svg viewBox="0 0 7 7"><use href="#p-arrow"/></svg><div><small>Juste devant toi</small><b>Karim est juste devant toi, à 85 pts</b></div></div></div></div></div></div><p class="cap">Son ordre à côté du bon ordre ; les éléments bien placés sont surlignés. 800 × 9/10 = 720, série à 0 (bareme.md).</p></figure><figure class="shot"><figcaption class="hd"><b>m</b><span>Vote</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q03/08</span></div><div class="res"><div class="vd vote">VOTE ENREGISTRÉ</div><small class="nojf">Pas de juste ni de faux : c'est un vote, aucun point en jeu.</small></div><div class="body"><div class="pc cmp"><small>Ton choix</small><div class="tile kD mini"><span class="L"><b>D</b><svg viewBox="0 0 8 8"><use href="#p-sq"/></svg></span><span class="t">Deux jours au vert, avec une nuit sur place</span></div><small class="q3">Quel format pour la prochaine SummerSchool ?</small></div><div class="pc two"><div><small>Rang</small><b>15<sup>E</sup>/40</b></div><div><small>Score inchangé</small><b>1 910</b></div></div><div class="pc riv"><svg viewBox="0 0 7 7"><use href="#p-arrow"/></svg><div><small>Juste devant toi</small><b>Karim est juste devant toi, à 85 pts</b></div></div></div></div></div></div><p class="cap">Son choix, sans juste ni faux. Score inchangé, boost ni cassé ni prolongé (CAP-13, CAP-7).</p></figure><figure class="shot"><figcaption class="hd"><b>n</b><span>Pas de réponse</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master</span><span class="qn">Q02/08</span></div><div class="res"><div class="vd none">PAS DE RÉPONSE</div><div class="gain zero">0</div><small>point · ta série retombe à 0</small></div><div class="body"><div class="pc cmp"><small>La bonne réponse</small><div class="tile kA mini good"><span class="L"><b>A</b><svg viewBox="0 0 8 8"><use href="#p-tri"/></svg></span><span class="t">Vrai</span><span class="mk ok">JUSTE</span></div><small class="q3">Vrai ou faux : le séminaire d'été de Tasmane s'appelle la SummerSchool.</small></div><div class="pc two"><div><small>Rang</small><b>26<sup>E</sup>/40</b></div><div><small>Score</small><b>750</b></div></div><div class="pc riv"><svg viewBox="0 0 7 7"><use href="#p-arrow"/></svg><div><small>Juste devant toi</small><b>Léa est juste devant toi, à 180 pts</b></div></div></div></div></div></div><p class="cap">« Pas de réponse », la bonne réponse et 0 point (formats-de-question).</p></figure><figure class="shot"><figcaption class="hd"><b>o</b><span>En tête</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="gbar"><span class="me">Slide Master<span class="bst"><svg class="flame " viewBox="0 0 8 10"><use href="#flame"/></svg>BOOST</span></span><span class="qn">Q06/08</span></div><div class="res"><div class="vd ok">BONNE RÉPONSE !</div><div class="gain">+1 180</div><small>points gagnés · vitesse +980 · série +200</small></div><div class="body"><div class="pc two"><div><small>Rang</small><b>1<sup>ER</sup>/40</b></div><div><small>Score</small><b>6 950</b></div></div><div class="pc boost"><svg class="flame big" viewBox="0 0 8 10"><use href="#flame"/></svg><div><small>En boost</small><b>3 bonnes réponses d'affilée</b><span>Bonus de série +200</span></div><span class="tg">BOOST</span></div><div class="pc lead"><svg viewBox="0 0 8 8"><use href="#p-crown"/></svg><div><small>En tête</small><b>Tu es en tête ! Karim te suit à 180 pts</b></div></div></div></div></div></div><p class="cap">Le premier voit un message de tête à la place de l'écart (CAP-15).</p></figure></div></section><section class="row"><div class="row-h"><b>5</b><h2>Fin</h2><p>CAP-8 + memlog : suspense pendant le podium, puis rang final et petit récap, la partie se ferme.</p></div><div class="shots"><figure class="shot"><figcaption class="hd"><b>p</b><span>Podium · suspense</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="susp"><p class="dots"><i></i><i></i><i></i></p><h3>Le podium se dévoile…</h3><p class="look">Regarde le grand écran</p><p class="sub">Ton résultat final s'affichera ici juste après.</p></div></div></div></div><p class="cap">Aucun résultat sur le téléphone : il se découvre sur le grand écran.</p></figure><figure class="shot"><figcaption class="hd"><b>q</b><span>Récap final</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="end"><small class="over">PARTIE TERMINÉE</small><p class="qz">Inauguration TazQuiz</p><div class="rank"><small>Rang final</small><b>12<sup>E</sup></b><span>sur 40 joueurs</span></div><div class="body"><div class="pc two"><div><small>Score total</small><b>5 870</b></div><div><small>Bonnes réponses</small><b>6 / 8</b></div></div><p class="sub c">Merci d'avoir joué, Slide Master. La partie est fermée : tu peux quitter cette page.</p></div></div></div></div></div><p class="cap">Rang final, score total, bonnes réponses sur le nombre de questions. Pas de mot de Taz (V2).</p></figure></div></section><section class="row"><div class="row-h"><b>6</b><h2>Erreurs avec Taz</h2><p>Taz en expression statique + texte clair qui dit quoi faire + bouton d'action, sans vanne (memlog).</p></div><div class="shots"><figure class="shot"><figcaption class="hd"><b>r1</b><span>PIN faux</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="errs"><svg class="taz" viewBox="0 0 200 220"><use href="#e1" width="200" height="220"/></svg><h3>Ce code ne correspond à aucune partie</h3><p>Vérifie les 6 chiffres affichés sur le grand écran, puis réessaie.</p><div class="field pinf bad"><span>482</span><span>931</span></div><div class="btn ">Ressaisir le code</div></div></div></div></div><p class="cap">Taz neutre. Le code saisi reste visible pour repérer la faute de frappe (CAP-4).</p></figure><figure class="shot"><figcaption class="hd"><b>r1</b><span>PIN faux</span><em><i class="kl"></i>Clair</em></figcaption><div class="phone"><div class="pscr th-light"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="errs"><svg class="taz" viewBox="0 0 200 220"><use href="#e1" width="200" height="220"/></svg><h3>Ce code ne correspond à aucune partie</h3><p>Vérifie les 6 chiffres affichés sur le grand écran, puis réessaie.</p><div class="field pinf bad"><span>482</span><span>931</span></div><div class="btn ">Ressaisir le code</div></div></div></div></div><p class="cap">Même écran en clair.</p></figure><figure class="shot"><figcaption class="hd"><b>r2</b><span>Partie terminée</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="errs"><svg class="taz" viewBox="0 0 200 220"><use href="#e3" width="200" height="220"/></svg><h3>Cette partie est terminée</h3><p>Son code n'est plus valide. Demande à l'animateur le code de la partie en cours.</p><div class="btn ">Saisir un autre code</div></div></div></div></div><p class="cap">Taz désabusé. Le PIN d'une partie finie n'est plus valide (CAP-8).</p></figure><figure class="shot"><figcaption class="hd"><b>r3</b><span>Partie complète</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="errs"><svg class="taz" viewBox="0 0 200 220"><use href="#e5" width="200" height="220"/></svg><h3>La partie est complète</h3><p>200 joueurs y sont déjà : c'est le maximum. Tu peux suivre le quiz sur le grand écran.</p><div class="btn ">Saisir un autre code</div></div></div></div></div><p class="cap">Taz surpris. 201<sup>e</sup> joueur (CAP-5).</p></figure><figure class="shot"><figcaption class="hd"><b>r4</b><span>Reconnexion en cours</span><em><i class="kd"></i>Foncé</em></figcaption><div class="phone"><div class="pscr th-dark"><div class="pin"><div class="sbar"><span>9:41</span><span class="sig"><i></i><i></i><i></i><i></i> 4G</span></div><div class="errs"><svg class="taz" viewBox="0 0 200 220"><use href="#e1" width="200" height="220"/></svg><h3>On te reconnecte…</h3><p>Ton score (4 380 pts) et ta série sont gardés. Garde cette page ouverte, tu reprends là où la partie en est.</p><p class="spin"><i></i><i></i><i></i><i></i></p><div class="btn ">Réessayer maintenant</div></div></div></div></div><p class="cap">Taz neutre. Score et série gardés, retour automatique à l'écran en cours (CAP-11).</p></figure></div></section><section class="notes">
+  <div>
+    <h3>Choix de maquette à valider</h3>
+    <ul>
+      <li>Réponses toujours en liste pleine largeur, une par ligne, y compris pour le choix simple (pas de grille 2 × 2 à la Kahoot) : même geste pour tous les formats, textes jamais coupés.</li>
+      <li>Énoncé en 15 px gras en haut, chrono pixel dans une petite boîte à droite de l'énoncé ; réponses en 15 à 17 px.</li>
+      <li>Choix multiple : case à cocher à droite de chaque tuile, tuile cochée remplie de sa couleur ; compteur « 2 cochées » ; bouton « Valider mes 2 réponses » collé en bas de l'écran pendant le défilement ; mention « sans validation à la fin du chrono : pas de réponse ».</li>
+      <li>Classement : colonne de rangs fixes (1<sup>er</sup> à 5<sup>e</sup>) à gauche, poignée de glisser à gauche de la tuile, flèches ↑↓ empilées à droite ; ↑ grisée sur le premier, ↓ sur le dernier.</li>
+      <li>Code de la partie à 6 chiffres (longueur du PIN non fixée par la spec).</li>
+      <li>Écran pseudo : rappel du nom de la partie et du code en haut ; compteur « 12 / 20 » (longueur max non fixée par la spec) ; texte RGPD proposé : « Ton pseudo et tes réponses servent uniquement au déroulé de cette partie », sans durée de conservation (conforme à la spec V1).</li>
+      <li>Pseudo refusé : bouton Rejoindre désactivé tant que le pseudo n'a pas changé ; message gros mot neutre, sans répéter le mot.</li>
+      <li>Boost : badge « BOOST » + flamme à côté du pseudo dans la barre du haut, plus une carte « En boost » dans le résultat ; dégradé orange → jaune, flamme qui vacille, halo qui pulse.</li>
+      <li>Résultat juste : détail « vitesse +850 · série +100 » sous les points gagnés.</li>
+      <li>Message de tête : « Tu es en tête ! Karim te suit à 180 pts » (le second et son écart, au lieu du joueur devant).</li>
+      <li>Classement partiel : verdict « PRESQUE ! » et « 9 paires sur 10 dans le bon ordre » ; bien placés = surlignés en vert, mal placés en pointillé atténué.</li>
+      <li>Réponse enregistrée : rappel « révélation à la fin du chrono » qui clignote (pas de chrono affiché sur cet écran).</li>
+      <li>Expressions de Taz : neutre pour PIN faux et reconnexion, désabusé pour partie terminée, surpris pour partie complète, content en Salle d'attente, neutre pour le retardataire.</li>
+      <li>Retardataire : même confirmation que la Salle d'attente, plus une carte « Partie en cours · question 4 sur 8 ».</li>
+      <li>Récap final : « Tu peux quitter cette page » sans bouton (la partie se ferme seule).</li>
+      <li>Les chiffres (scores, rangs, écarts) sont cohérents écran par écran, mais les écrans ne racontent pas une seule et même partie.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Tensions avec la spec</h3>
+    <ul>
+      <li><b>CAP-24, 6 réponses longues sur 360 px :</b> avec ~100 caractères par réponse, l'énoncé, le chrono et le bouton Valider, l'écran dépasse 780 px de haut : la page défile (trait pointillé). Rien n'est tronqué, le chrono reste visible en haut seulement si on le rend collant (proposé : chrono et bouton collés, à confirmer). La spec dit « sans troncature », pas « sans défilement ».</li>
+      <li><b>CAP-5 vs memlog :</b> la spec dit que deux joueurs qui choisissent « Paul » apparaissent sous deux pseudos distincts (ce qui sous-entend un suffixe automatique) ; le memlog décide qu'on demande au second d'en choisir un autre. La maquette suit le memlog ; le critère de succès de CAP-5 est à réécrire.</li>
+      <li><b>formats-de-question.md :</b> la saisie du classement y est « glisser-déposer ou tap séquentiel » ; le memlog retient glisser-déposer + flèches ↑↓. À aligner.</li>
+      <li><b>Récap « 6 / 8 » :</b> le quiz d'exemple contient des votes (Q03, Q08), qui n'ont ni juste ni faux. Compte-t-on les bonnes réponses sur toutes les questions ou sur les seules questions scorées (6 / 6) ? À trancher.</li>
+      <li><b>Classement partiel et boost :</b> un classement partiel rapporte des points mais remet la série à 0 (bareme.md) ; le verdict « PRESQUE ! » ne doit pas laisser croire que la série continue (mention « série à 0 » ajoutée).</li>
+      <li><b>Couleurs proches :</b> la flamme orange/jaune côtoie E (orange) et C (jaune) ; elle n'apparaît jamais sur une tuile, mais l'écran « juste + boost » reste à vérifier en vrai.</li>
+    </ul>
+  </div>
+</section>
+</div>
+</body></html>
